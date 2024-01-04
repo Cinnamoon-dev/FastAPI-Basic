@@ -8,6 +8,8 @@ router = APIRouter(prefix="/user")
 
 @router.get("/all")
 def userAll():
+    # TODO
+    # Paginate with db.query.slice and db.query.count
     db = get_db()
     users = db.query(userModel.User).all()
     
