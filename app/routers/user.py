@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request
 from app.database import get_db
 from app.models import userModel
+from app.routers import paginate
 from app.schemas import userSchema
 
 router = APIRouter(prefix="/user")
@@ -8,21 +9,9 @@ router = APIRouter(prefix="/user")
 
 @router.get("/all")
 def userAll():
-    # TODO
-    # Paginate with db.query.slice and db.query.count
     db = get_db()
-    users = db.query(userModel.User).all()
-    
-    data = {
-        "error": False,
-        "items": []
-    }
 
-    for user in users:
-        user_json = user.to_dict()
-        data["items"].append(user_json)
-
-    return data
+    return paginate(db.query(userModel.User), 9, 1)
 
 @router.get("/view/{id:int}")
 def userView(id: int):
