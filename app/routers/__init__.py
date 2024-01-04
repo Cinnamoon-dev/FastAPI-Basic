@@ -2,15 +2,6 @@ import math
 from sqlalchemy.orm import Query
 
 def paginate(query: Query, page: int = 1, rows_per_page: int = 1):
-    """
-        pages_count - ok
-        itens_count - ok
-        itens_per_page - ok
-        prev
-        next
-        current - ok
-    """
-    
     itens_count = query.count()
     pages_count = math.ceil(itens_count / rows_per_page)
     prev = None
@@ -39,8 +30,4 @@ def paginate(query: Query, page: int = 1, rows_per_page: int = 1):
     stop = page * rows_per_page
 
     itens = query.slice(start, stop)
-
-    for item in itens:
-        output["itens"].append(item.to_dict())
-    
-    return output
+    return itens, output
