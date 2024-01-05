@@ -2,7 +2,6 @@ from fastapi import APIRouter, Request
 from app.database import get_db
 from app.models import userModel
 from app.routers import paginate, instance_update
-from app.schemas import userSchema
 
 router = APIRouter(prefix="/user")
 
