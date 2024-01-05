@@ -8,7 +8,7 @@ router = APIRouter(prefix="/user")
 
 
 @router.get("/all")
-def userAll():
+async def userAll():
     db = get_db()
     users, output = paginate(db.query(userModel.User), 1, 10)
 
@@ -18,7 +18,7 @@ def userAll():
     return output
 
 @router.get("/view/{id:int}")
-def userView(id: int):
+async def userView(id: int):
     db = get_db()
     user = db.query(userModel.User).get(id)
 
@@ -33,13 +33,20 @@ def userView(id: int):
     return response
     
 @router.post("/add")
-def userAdd(user: userSchema.UserSchema):
+async def userAdd(request: Request):
     db = get_db()
-    
-    if db.query(userModel.User).filter(userModel.User.email == user.email.lower()).first():
+    data = await request.json()
+
+    email = data.get("email").lower()
+
+    if db.query(userModel.User).filter(userModel.User.email == email).first():
         return {"error": True, "message": "email already registered"}, 409
     
-    newUser = userModel.User(user.name, user.email.lower(), user.password)
+    newUser = userModel.User(
+        data.get("name"),
+        data.get("email").lower(),
+        data.get("password")
+    )
     db.add(newUser)
 
     try:
@@ -52,27 +59,29 @@ def userAdd(user: userSchema.UserSchema):
         return {"error": True, "message": "database error"}
 
 @router.put("/edit/{id:int}")
-def userEdit(id: int, user: userSchema.UserEditSchema):
+async def userEdit(id: int, request: Request):
     db = get_db()
     oldUser = db.query(userModel.User).get(id)
 
     if not oldUser:
         return {"error": True, "message": "user not found"}, 404
 
-    if "email" in user.model_dump() and user.model_dump().get("email") is not None:
-        repeatedEmail = db.query(userModel.User).filter(userModel.User.email == user.model_dump().get("email")).first()
+    data = await request.json()
+
+    if "email" in data and data.get("email") is not None:
+        repeatedEmail = db.query(userModel.User).filter(userModel.User.email == data.get("email")).first()
 
         if repeatedEmail:
             return {"error": True, "message": "Email already registered"}, 409
 
-    if "email" in user.model_dump() and user.model_dump().get("email") is not None:
-        setattr(oldUser, "email", user.model_dump().get("email"))
+    if "email" in data and data.get("email") is not None:
+        setattr(oldUser, "email", data.get("email"))
 
-    if "name" in user.model_dump() and user.model_dump().get("name") is not None:
-        setattr(oldUser, "name", user.model_dump().get("name"))
+    if "name" in data and data.get("name") is not None:
+        setattr(oldUser, "name", data.get("name"))
 
-    if "password" in user.model_dump() and user.model_dump().get("password") is not None:
-        setattr(oldUser, "password", user.model_dump().get("password"))
+    if "password" in data and data.get("password") is not None:
+        setattr(oldUser, "password", data.get("password"))
 
     db.add(oldUser)
 
@@ -86,7 +95,7 @@ def userEdit(id: int, user: userSchema.UserEditSchema):
         return {"error": True, "message": "database error"}
 
 @router.delete("/delete/{id:int}")
-def userView(id: int):
+async def userView(id: int):
     db = get_db()
     user = db.query(userModel.User).filter(userModel.User.id == id).first()
 
@@ -103,4 +112,3 @@ def userView(id: int):
     except:
         db.rollback()
         return {"error": True, "message": "database error"}
-
