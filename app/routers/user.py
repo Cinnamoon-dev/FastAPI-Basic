@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from app.database import get_db
 from app.models import userModel
-from app.routers import paginate
+from app.routers import paginate, instance_update
 from app.schemas import userSchema
 
 router = APIRouter(prefix="/user")
@@ -74,15 +74,7 @@ async def userEdit(id: int, request: Request):
         if repeatedEmail:
             return {"error": True, "message": "Email already registered"}, 409
 
-    if "email" in data and data.get("email") is not None:
-        setattr(oldUser, "email", data.get("email"))
-
-    if "name" in data and data.get("name") is not None:
-        setattr(oldUser, "name", data.get("name"))
-
-    if "password" in data and data.get("password") is not None:
-        setattr(oldUser, "password", data.get("password"))
-
+    instance_update(oldUser, data)
     db.add(oldUser)
 
     try:
