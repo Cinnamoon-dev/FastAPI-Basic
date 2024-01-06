@@ -1,9 +1,15 @@
+import os
 from sqlalchemy import create_engine
-from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:1234@localhost:5432/fastdb"
+USER = os.getenv("POSTGRES_USER", "postgres")
+PASSWORD = os.getenv("POSTGRES_PASSWORD", "1234")
+HOST = os.getenv("POSTGRES_HOST", "localhost")
+PORT = os.getenv("POSTGRES_PORT", 5432)
+DATABASE = os.getenv("POSTGRES_DB", "fastdb")
+
+SQLALCHEMY_DATABASE_URL = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
