@@ -24,3 +24,6 @@ class User(Base):
         }
 
         return data
+
+    def __repr__(self):
+        return "<User %r %r %r %r>" % self.id, self.name, self.email, self.password
