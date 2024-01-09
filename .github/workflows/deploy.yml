@@ -1,0 +1,74 @@
+name: Build and Deploy CD Workflow
+
+on:
+  push:
+    branches: [master, develop]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to any stages
+    runs-on: ubuntu-latest
+    env:
+      PASSWORD: "${{ secrets.SSH_PASSW }}"
+    steps:
+      - name: Deploy to development stage
+        if: ${{ github.ref == 'refs/heads/develop' }}
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSW }}
+          port: 22
+          envs: PASSWORD
+          script: ${{ secrets.SCRIPT_PATH }}
+
+  notify-status:
+    name: Notify deploy status 🚀
+    needs: [deploy]
+    if: always()
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send success build message to Telegram 💬✅
+        if: ${{ always() && (needs.deploy.result == 'success') }}
+        uses: appleboy/telegram-action@master
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+          PR_NUMBER_OR_MASTER: ${{ github.event.number == 0 && 'stable from master' ||  format('#{0}', github.event.number)  }}
+          STAGE_NAME: ${{ github.ref == 'refs/heads/master' && 'produção' || 'desenvolvimento' }}
+
+        with:
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            ✅ Nova versão de *${{ env.STAGE_NAME }}* disponível!
+            ⎿ 📌 Autor responsável: ${{ github.actor }}
+            ✏️ De: [${{ github.repository }}](${{ github.repository.html_url }})
+            🏷️ Versão : ```${{ env.PR_NUMBER_OR_MASTER }}```
+            ⎿ 🛠️ Build : #```${{ github.run_number }}```
+            🧬 Alterações: [Aqui!](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            📦 Deploy: [Aqui!](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            Esta é uma mensagem automática e informativa. Por favor, não responda.
+      - name: Send error build message to Telegram 💬❌
+        if: ${{ always() && (needs.deploy.result == 'failure') }}
+        uses: appleboy/telegram-action@master
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+          PR_NUMBER_OR_MASTER: ${{ github.event.number == 0 && 'stable from master' ||  format('#{0}', github.event.number)  }}
+          STAGE_NAME: ${{ github.ref == 'refs/heads/master' && 'produção' || 'desenvolvimento' }}
+
+        with:
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            ❌ Nova versão de *${{ env.STAGE_NAME }}* não disponível, pois falhou!
+            ⎿ 📌 Autor responsável: ${{ github.actor }}
+            ✏️ De: [${{ github.repository }}](https://github.com/${{ github.repository }})
+            🏷️ Versão : ```${{ env.PR_NUMBER_OR_MASTER }}```
+            ⎿ 🛠️ Build : #```${{ github.run_number }}```
+            🧬 Alterações: [Aqui!](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            📦 Deploy: [Aqui!](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            Esta é uma mensagem automática e informativa. Por favor, não responda.
