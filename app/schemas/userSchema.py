@@ -1,18 +1,24 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class UserSchema(BaseModel):
+class UserAddSchema(BaseModel):
     name: str
     email: str
     password: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "name": "user",
+        "email": "user@email.com",
+        "password": "password"
+    }
 
 class UserEditSchema(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
     password: Optional[str]  = None
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "name": "user",
+        "email": "user@email.com",
+        "password": "password"
+    }
