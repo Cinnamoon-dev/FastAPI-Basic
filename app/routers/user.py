@@ -1,12 +1,16 @@
-from fastapi import APIRouter, Request
+import json
 from app.database import get_db
 from app.models import userModel
+from fastapi import APIRouter, Response
 from app.routers import paginate, instance_update
+from app.swagger_models.userResponses import UserAllDoc, UserViewDoc
+from app.swagger_models.generalResponses import DefaultReponseDoc
+from app.schemas.userSchema import UserAddSchema, UserEditSchema
 
 router = APIRouter(prefix="/user")
 
 
-@router.get("/all")
+@router.get("/all", response_model=UserAllDoc)
 async def userAll():
     db = get_db()
     users, output = paginate(db.query(userModel.User), 1, 10)
@@ -16,7 +20,7 @@ async def userAll():
 
     return output
 
-@router.get("/view/{id:int}")
+@router.get("/view/{id:int}", response_model=UserViewDoc)
 async def userView(id: int):
     db = get_db()
     user = db.query(userModel.User).get(id)
@@ -30,16 +34,15 @@ async def userView(id: int):
     }
 
     return response
-    
-@router.post("/add")
-async def userAdd(request: Request):
-    db = get_db()
-    data = await request.json()
 
+@router.post("/add", response_model=DefaultReponseDoc)
+async def userAdd(user: UserAddSchema):
+    db = get_db()
+    data = user.model_dump()
     email = data.get("email").lower()
 
     if db.query(userModel.User).filter(userModel.User.email == email).first():
-        return {"error": True, "message": "email already registered"}, 409
+        return Response(json.dumps({"error": True, "message": "email already registered"}), 409)
     
     newUser = userModel.User(
         data.get("name"),
@@ -57,15 +60,15 @@ async def userAdd(request: Request):
         db.rollback()
         return {"error": True, "message": "database error"}
 
-@router.put("/edit/{id:int}")
-async def userEdit(id: int, request: Request):
+@router.put("/edit/{id:int}", response_model=DefaultReponseDoc)
+async def userEdit(id: int, user: UserEditSchema):
     db = get_db()
     oldUser = db.query(userModel.User).get(id)
 
     if not oldUser:
         return {"error": True, "message": "user not found"}, 404
 
-    data = await request.json()
+    data = user.model_dump()
 
     if "email" in data and data.get("email") is not None:
         repeatedEmail = db.query(userModel.User).filter(userModel.User.email == data.get("email")).first()
@@ -85,7 +88,7 @@ async def userEdit(id: int, request: Request):
         db.rollback()
         return {"error": True, "message": "database error"}
 
-@router.delete("/delete/{id:int}")
+@router.delete("/delete/{id:int}", response_model=DefaultReponseDoc)
 async def userView(id: int):
     db = get_db()
     user = db.query(userModel.User).filter(userModel.User.id == id).first()
