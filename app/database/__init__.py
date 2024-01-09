@@ -6,7 +6,7 @@ USER = os.getenv("POSTGRES_USER", "postgres")
 PASSWORD = os.getenv("POSTGRES_PASSWORD", "1234")
 HOST = os.getenv("POSTGRES_HOST", "localhost")
 PORT = os.getenv("POSTGRES_PORT", 5432)
-DATABASE = os.getenv("POSTGRES_DB", "fast_test")
+DATABASE = os.getenv("POSTGRES_DB", "fastdb")
 
 SQLALCHEMY_DATABASE_URL = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
 
