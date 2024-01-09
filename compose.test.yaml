@@ -1,0 +1,38 @@
+services:
+  flask_app:
+    container_name: flask_app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - .dev.env
+    volumes:
+      - .:/api
+    ports:
+      - "5000:5000"
+    depends_on:
+      flask_db:
+        condition: service_healthy
+    networks:
+      - backend
+
+  flask_db:
+    container_name: flask_db
+    image: postgres:12.0-alpine
+    hostname: flask_db
+    env_file:
+      - .db.env
+    expose:
+      - 5432
+    networks:
+      - backend
+    volumes:
+      - ./docker/test-db-backup:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 3s
+      timeout: 3s
+      retries: 3
+
+networks:
+  backend:
