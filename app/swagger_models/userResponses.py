@@ -6,6 +6,7 @@ class UserDoc(BaseModel):
     name: str
     email: str
     password: str
+    isVerified: bool
 
 class UserAllDoc(BaseModel):
     error: bool

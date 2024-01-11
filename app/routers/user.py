@@ -47,7 +47,8 @@ async def userAdd(user: UserAddSchema):
     newUser = userModel.User(
         data.get("name"),
         data.get("email").lower(),
-        data.get("password")
+        data.get("password"),
+        False
     )
     db.add(newUser)
 
