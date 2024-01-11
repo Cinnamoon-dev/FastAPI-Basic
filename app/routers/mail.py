@@ -15,9 +15,6 @@ MAIL_FROM = os.getenv("MAIL_FROM", MAIL_USERNAME)
 NAME = os.getenv("NAME", "John Doe")
 TITLE = "Example Title"
 
-print(MAIL_USERNAME)
-print(MAIL_PASSWORD)
-
 conf = ConnectionConfig(
     MAIL_USERNAME = MAIL_USERNAME,
     MAIL_PASSWORD = MAIL_PASSWORD,
