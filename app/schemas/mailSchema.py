@@ -1,5 +1,8 @@
 from typing import List
 from pydantic import BaseModel, EmailStr
 
-class EmailSchema(BaseModel):
+class SendEmailSchema(BaseModel):
     email: List[EmailStr]
+
+class VerifyEmailSchema(BaseModel):
+    email: EmailStr
