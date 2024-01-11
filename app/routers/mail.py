@@ -1,34 +1,35 @@
-from fastapi import APIRouter, Response
+import os
+from fastapi import APIRouter
 from starlette.responses import JSONResponse
+from app.schemas.mailSchema import EmailSchema
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
-from pydantic import EmailStr, BaseModel
-from typing import List
 
 router = APIRouter(prefix="/mail")
 
+MAIL_USERNAME = os.getenv("MAIL_USERNAME", "example@gmail.com")
+MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "google_app_password")
+MAIL_FROM = os.getenv("MAIL_FROM", MAIL_USERNAME)
+
 conf = ConnectionConfig(
-    MAIL_USERNAME = "cinnamoonpeterdev@gmail.com",
-    MAIL_PASSWORD = "asdf1234**",
-    MAIL_FROM = "cinnamoonpeterdev@gmail.com",
+    MAIL_USERNAME = MAIL_USERNAME,
+    MAIL_PASSWORD = MAIL_PASSWORD,
+    MAIL_FROM = MAIL_FROM,
     MAIL_PORT = 587,
     MAIL_SERVER = "smtp.gmail.com",
     MAIL_FROM_NAME="FastAPI-Mail Test",
     MAIL_STARTTLS = True,
     MAIL_SSL_TLS = False,
-    USE_CREDENTIALS = False,
-    VALIDATE_CERTS = False
+    USE_CREDENTIALS = True,
+    VALIDATE_CERTS = True
 )
 
-class EmailSchema(BaseModel):
-    email: List[EmailStr]
-
-@router.post("/email")
+@router.post("/send")
 async def simple_send(email: EmailSchema) -> JSONResponse:
     html = """<p>Hi this test mail, thanks for using Fastapi-mail</p> """
 
     message = MessageSchema(
         subject="Fastapi-Mail module",
-        recipients=email.dict().get("email"),
+        recipients=email.model_dump().get("email"),
         body=html,
         subtype=MessageType.html
     )
