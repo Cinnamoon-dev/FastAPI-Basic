@@ -1,10 +1,10 @@
 import os, json
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Request, Response
 from dotenv import load_dotenv
 from app.database import get_db
 from app.models.userModel import User
 from starlette.responses import JSONResponse
-from app.schemas.mailSchema import SendEmailSchema, VerifyEmailSchema
+from app.schemas.mailSchema import SendEmailSchema
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 
 router = APIRouter(prefix="/mail")
@@ -31,8 +31,18 @@ conf = ConnectionConfig(
 )
 
 @router.post("/send_verify_email")
-async def send_verify_email(email: SendEmailSchema) -> JSONResponse:
-    html = """<p>Hi this test mail, thanks for using Fastapi-mail</p>"""
+async def send_verify_email(email: SendEmailSchema, request: Request):
+    # TODO
+    # generate a token and send it to the other endpoint
+    # then deserialize the token in the other endpoint
+    email_to_verify = str(email.model_dump()["email"])
+
+    html = f"""
+    <p>
+        Click in the following link to confirm your email: 
+        <a href="{request.url_for("verify_email",email= str(email.model_dump()["email"][0]))}">link</a>
+    </p>
+    """
 
     message = MessageSchema(
         subject=TITLE,
@@ -45,10 +55,10 @@ async def send_verify_email(email: SendEmailSchema) -> JSONResponse:
     await fm.send_message(message)
     return JSONResponse(status_code=200, content={"message": "email has been sent"})
 
-@router.post("/verify_email")
-async def verify_email(email: VerifyEmailSchema):
+@router.get("/verify_email/{email}")
+async def verify_email(email: str):
     db = get_db()
-    user = db.query(User).filter(User.email == email.model_dump()["email"]).first()
+    user = db.query(User).filter(User.email == email).first()
 
     if not user:
         return Response(json.dumps({"error": True, "message": "Email not found"}), 404)
