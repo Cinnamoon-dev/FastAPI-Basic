@@ -1,6 +1,6 @@
 services:
-  flask_app:
-    container_name: flask_app
+  fastapi_app:
+    container_name: fastapi_app
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -10,15 +10,15 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      flask_db:
+      fastapi_db:
         condition: service_healthy
     networks:
       - backend
 
-  flask_db:
-    container_name: flask_db
+  fastapi_db:
+    container_name: fastapi_db
     image: postgres:12.0-alpine
-    hostname: flask_db
+    hostname: fastapi_db
     env_file:
       - .db.env
     expose:
