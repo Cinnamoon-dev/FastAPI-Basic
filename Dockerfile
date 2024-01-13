@@ -2,12 +2,9 @@ FROM python:3.11.7-alpine
 
 WORKDIR /api
 
-COPY pyproject.toml .
-COPY poetry.lock .
+COPY ./docker/requirements.txt ./docker/requirements.txt
 
-RUN pip install poetry
-RUN poetry config virtualenvs.create false
-RUN poetry install
+RUN pip install -r docker/requirements.txt
 
 COPY . .
 

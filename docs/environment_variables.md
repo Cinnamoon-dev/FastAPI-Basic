@@ -19,11 +19,11 @@ The `.dev.env` file provides the variables below to the API service:
 
 ```yaml
 services:
-    flask_db:
-        hostname: flask_db
+    fastapi_db:
+        hostname: fastapi_db
 ```
 
 ```
 // .dev.env
-POSTGRES_HOST=flask_db
+POSTGRES_HOST=fastapi_db
 ```
