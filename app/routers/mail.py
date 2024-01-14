@@ -1,6 +1,8 @@
 import os, json
 from typing import Union
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Request, Response, Depends
+from sqlalchemy.orm import Session
+from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
 from pydantic import EmailStr
@@ -41,10 +43,8 @@ def token(email: EmailStr):
     return _token
 
 @router.post("/send_verify_email")
-async def send_verify_email(email: SendEmailSchema, request: Request):
+async def send_verify_email(email: SendEmailSchema, request: Request, db: Session = Depends(get_db)):
     email_to_verify = str(email.model_dump()["email"])
-
-    db = get_db()
     user = db.query(User).filter(User.email == email_to_verify).first()
 
     if not user:
@@ -71,8 +71,7 @@ async def send_verify_email(email: SendEmailSchema, request: Request):
     return JSONResponse(status_code=200, content={"message": "email has been sent"})
 
 @router.get("/verify_email/{email_token}", response_class=HTMLResponse)
-async def verify_email(email_token: Union[str, bytes]):
-    db = get_db()
+async def verify_email(email_token: Union[str, bytes], db: Session = Depends(get_db)):
 
     try:
         email = token_algo.loads(email_token, max_age=1800)
@@ -82,7 +81,6 @@ async def verify_email(email_token: Union[str, bytes]):
         return "<p>Token invalido, peça outro email.</p>"
 
     user = db.query(User).filter(User.email == email).first()
-
     user.isVerified = True
 
     try:
