@@ -1,7 +1,8 @@
 import json
 from app.database import get_db
 from app.models import userModel
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, Depends
+from sqlalchemy.orm import Session
 from app.routers import paginate, instance_update
 from app.swagger_models.userResponses import UserAllDoc, UserViewDoc
 from app.swagger_models.generalResponses import DefaultReponseDoc
@@ -11,8 +12,7 @@ router = APIRouter(prefix="/user")
 
 
 @router.get("/all", response_model=UserAllDoc)
-async def userAll():
-    db = get_db()
+async def userAll(db: Session = Depends(get_db)):
     users, output = paginate(db.query(userModel.User), 1, 10)
 
     for user in users:
@@ -21,8 +21,7 @@ async def userAll():
     return output
 
 @router.get("/view/{id:int}", response_model=UserViewDoc)
-async def userView(id: int):
-    db = get_db()
+async def userView(id: int, db: Session = Depends(get_db)):
     user = db.query(userModel.User).get(id)
 
     if not user:
@@ -36,8 +35,7 @@ async def userView(id: int):
     return response
 
 @router.post("/add", response_model=DefaultReponseDoc)
-async def userAdd(user: UserAddSchema):
-    db = get_db()
+async def userAdd(user: UserAddSchema, db: Session = Depends(get_db)):
     data = user.model_dump()
     email = data.get("email").lower()
 
@@ -62,8 +60,7 @@ async def userAdd(user: UserAddSchema):
         return {"error": True, "message": "database error"}
 
 @router.put("/edit/{id:int}", response_model=DefaultReponseDoc)
-async def userEdit(id: int, user: UserEditSchema):
-    db = get_db()
+async def userEdit(id: int, user: UserEditSchema, db: Session = Depends(get_db)):
     oldUser = db.query(userModel.User).get(id)
 
     if not oldUser:
@@ -90,8 +87,7 @@ async def userEdit(id: int, user: UserEditSchema):
         return {"error": True, "message": "database error"}
 
 @router.delete("/delete/{id:int}", response_model=DefaultReponseDoc)
-async def userView(id: int):
-    db = get_db()
+async def userView(id: int, db: Session = Depends(get_db)):
     user = db.query(userModel.User).filter(userModel.User.id == id).first()
 
     if not user:
