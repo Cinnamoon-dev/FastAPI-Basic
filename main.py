@@ -1,8 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
-from app.routers import user
-from app.routers import authRouter
 from app.database import Base, engine
+from app.routers import authRouter, user
 
 Base.metadata.create_all(bind=engine)
 
