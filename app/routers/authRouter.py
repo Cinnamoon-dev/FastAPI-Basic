@@ -5,6 +5,7 @@ from datetime import timedelta, datetime
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter,  HTTPException
+from app.schemas.AuthSchema import AuthResponseModel, MeResponseModel
 from app.dependencys import db_dependency, user_dependency, form_auth_dependency
 from app import ( 
     bcrypt_context, 
@@ -19,9 +20,10 @@ from app import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login")
+@router.post("/login", response_model=AuthResponseModel)
 async def login( db : db_dependency, data_form : form_auth_dependency ):
-    
+    """ Endpoint de Login do sistema """
+
     user = authenticate_user(data_form.username, data_form.password, db)
    
     if not user:
@@ -51,8 +53,9 @@ async def login( db : db_dependency, data_form : form_auth_dependency ):
     return response
 
 
-@router.get("/me", status_code = status.HTTP_200_OK)
+@router.get("/me", status_code = status.HTTP_200_OK, response_model=MeResponseModel)
 async def get_user_credentials( user : user_dependency ):
+    """ Endpoint para retornar os dados do user logado """
     
     if user is None:
         raise HTTPException(
