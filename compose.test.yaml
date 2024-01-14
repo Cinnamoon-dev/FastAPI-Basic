@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+    entrypoint: pytest
     env_file:
       - .dev.env
     ports:

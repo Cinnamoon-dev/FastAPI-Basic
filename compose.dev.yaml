@@ -6,6 +6,8 @@ services:
       dockerfile: ./Dockerfile
     env_file:
       - .dev.env
+    volumes:
+      - .:/api
     ports:
       - "5000:5000"
     depends_on:
@@ -24,6 +26,8 @@ services:
       - 5432
     networks:
       - backend
+    volumes:
+      - ./docker/test-db-backup:/var/lib/postgresql/data
     healthcheck:
       test: pg_isready -U postgres
       interval: 3s

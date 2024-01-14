@@ -1,7 +1,6 @@
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 USER = os.getenv("POSTGRES_USER", "postgres")
 PASSWORD = os.getenv("POSTGRES_PASSWORD", "1234")
