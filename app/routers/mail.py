@@ -1,7 +1,11 @@
 import os, json
+from typing import Union
 from fastapi import APIRouter, Request, Response
+from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
+from pydantic import EmailStr
 from app.database import get_db
+from itsdangerous import URLSafeTimedSerializer, BadTimeSignature, SignatureExpired
 from app.models.userModel import User
 from starlette.responses import JSONResponse
 from app.schemas.mailSchema import SendEmailSchema
@@ -30,23 +34,34 @@ conf = ConnectionConfig(
     VALIDATE_CERTS = True
 )
 
+token_algo = URLSafeTimedSerializer("asdfqwerty", salt="Email_verification_&_Forgot_password")
+
+def token(email: EmailStr):
+    _token = token_algo.dumps(email)
+    return _token
+
 @router.post("/send_verify_email")
 async def send_verify_email(email: SendEmailSchema, request: Request):
-    # TODO
-    # generate a token and send it to the other endpoint
-    # then deserialize the token in the other endpoint
     email_to_verify = str(email.model_dump()["email"])
+
+    db = get_db()
+    user = db.query(User).filter(User.email == email_to_verify).first()
+
+    if not user:
+        return Response(json.dumps({"error": True, "message": "Email not found"}), 404)
+
+    email_token = token(email_to_verify)
 
     html = f"""
     <p>
         Click in the following link to confirm your email: 
-        <a href="{request.url_for("verify_email",email= str(email.model_dump()["email"][0]))}">link</a>
+        <a href="{request.url_for("verify_email",email_token= email_token)}">link</a>
     </p>
     """
 
     message = MessageSchema(
         subject=TITLE,
-        recipients=email.model_dump().get("email"),
+        recipients=[email.model_dump().get("email")],
         body=html,
         subtype=MessageType.html
     )
@@ -55,20 +70,25 @@ async def send_verify_email(email: SendEmailSchema, request: Request):
     await fm.send_message(message)
     return JSONResponse(status_code=200, content={"message": "email has been sent"})
 
-@router.get("/verify_email/{email}")
-async def verify_email(email: str):
+@router.get("/verify_email/{email_token}", response_class=HTMLResponse)
+async def verify_email(email_token: Union[str, bytes]):
     db = get_db()
+
+    try:
+        email = token_algo.loads(email_token, max_age=1800)
+    except SignatureExpired:
+        return "<p>Tempo expirado, peça outro email.</p>"
+    except BadTimeSignature:
+        return "<p>Token invalido, peça outro email.</p>"
+
     user = db.query(User).filter(User.email == email).first()
 
-    if not user:
-        return Response(json.dumps({"error": True, "message": "Email not found"}), 404)
-    
     user.isVerified = True
 
     try:
         db.commit()
-        return Response(json.dumps({"error": False, "message": "User verified successfully"}))
+        return "<p>User verified successfully</p>"
     
     except:
         db.rollback()
-        return Response(json.dumps({"error": True, "message": "database error"}))
+        return "<p>Database Error, try again later.</p>"
