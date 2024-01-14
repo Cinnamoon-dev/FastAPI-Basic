@@ -5,6 +5,7 @@ from datetime import timedelta, datetime
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter,  HTTPException
+from app.dependencys.dependency import token_dependency
 from app.schemas.AuthSchema import AuthResponseModel, MeResponseModel
 from app.dependencys import db_dependency, user_dependency, form_auth_dependency
 from app import ( 
@@ -70,6 +71,10 @@ async def get_user_credentials( user : user_dependency ):
 
     return response
 
+@router.get("/refresh")
+async def refresh_token( user : user_dependency, token : token_dependency ):
+    """ Endpoint para renovação de token """
+    return
 
 def authenticate_user(email : str, password: str, db) -> bool | User:
     user : User = db.query(User).filter( User.email == email ).first()
