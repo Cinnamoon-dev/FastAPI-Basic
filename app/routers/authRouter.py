@@ -7,8 +7,8 @@ from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter,  HTTPException
 from app.dependencys import db_dependency, user_dependency, form_auth_dependency
 from app import ( 
-    ALGORITHM, 
     bcrypt_context, 
+    ALGORITHM_TO_HASH, 
     JWT_ACCESS_SECRETY_KEY, 
     JWT_REFRESH_SECRET_KEY, 
     REFRESH_TOKEN_EXPIRE_DAYS,
@@ -82,7 +82,7 @@ def create_access_token( email: str, user_id : int, expires_time: timedelta ):
     expires = datetime.utcnow() + expires_time
     encode.update({'exp' : expires})
     
-    return jwt.encode(encode, JWT_ACCESS_SECRETY_KEY, algorithm=ALGORITHM)
+    return jwt.encode(encode, JWT_ACCESS_SECRETY_KEY, algorithm=ALGORITHM_TO_HASH)
 
 
 def create_refresh_token( email : str, user_id : int, expires_delta: timedelta):
@@ -90,4 +90,4 @@ def create_refresh_token( email : str, user_id : int, expires_delta: timedelta):
     expires = datetime.utcnow() + expires_delta
     encode.update({"exp" : expires})
 
-    return jwt.encode(encode, JWT_REFRESH_SECRET_KEY, ALGORITHM)
+    return jwt.encode(encode, JWT_REFRESH_SECRET_KEY, ALGORITHM_TO_HASH)

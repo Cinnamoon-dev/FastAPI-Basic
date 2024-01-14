@@ -2,7 +2,7 @@ from typing import Annotated
 from starlette import status
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException
-from app import ALGORITHM, JWT_ACCESS_SECRETY_KEY
+from app import ALGORITHM_TO_HASH, JWT_ACCESS_SECRETY_KEY
 from fastapi.security import OAuth2PasswordBearer
 
 
@@ -11,7 +11,7 @@ oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 def get_current_user( token : Annotated[str, Depends(oauth2_bearer)] ):
   try:
-    payload = jwt.decode(token, JWT_ACCESS_SECRETY_KEY, algorithms=[ALGORITHM])
+    payload = jwt.decode(token, JWT_ACCESS_SECRETY_KEY, algorithms=[ALGORITHM_TO_HASH])
     email : str = payload.get("email")
     user_id : int = payload.get("user_id")
 
