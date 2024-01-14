@@ -5,8 +5,15 @@ from datetime import timedelta, datetime
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter,  HTTPException
-from app import bcrypt_context, ALGORITHM, SECRETY_KEY
 from app.dependencys import db_dependency, user_dependency, form_auth_dependency
+from app import ( 
+    ALGORITHM, 
+    bcrypt_context, 
+    JWT_ACCESS_SECRETY_KEY, 
+    JWT_REFRESH_SECRET_KEY, 
+    REFRESH_TOKEN_EXPIRE_DAYS,
+    ACCESS_TOKEN_EXPIRE_MINUTES, 
+)
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -23,8 +30,18 @@ async def login( db : db_dependency, data_form : form_auth_dependency ):
             detail={"message": "Usuário não encontrado", "error": True}
         )
 
-    token = create_access_token(user.email, user.id, timedelta(minutes=20))
-    content_response = jsonable_encoder({"access_token" : token, "token_type": "bearer"})
+    token = create_access_token( user.email, user.id, timedelta( 
+        minutes = ACCESS_TOKEN_EXPIRE_MINUTES
+    ) )
+    refresh_token = create_refresh_token( user.email, user.id, timedelta(
+        days = REFRESH_TOKEN_EXPIRE_DAYS
+    ) )
+    
+    content_response = jsonable_encoder({
+        "token_type": "bearer",
+        "access_token" : token,
+        "refresh_token" : refresh_token,
+    })
     
     response = JSONResponse(
         status_code=status.HTTP_202_ACCEPTED,
@@ -51,15 +68,13 @@ async def get_user_credentials( user : user_dependency ):
     return response
 
 
-def authenticate_user(email : str, password: str, db):
+def authenticate_user(email : str, password: str, db) -> bool | User:
     user : User = db.query(User).filter( User.email == email ).first()
 
-    if user is None:
-        return False
-    if not bcrypt_context.verify(password, user.password):
+    if user is None or not bcrypt_context.verify(password, user.password):
         return False
     
-    return user 
+    return user
 
 
 def create_access_token( email: str, user_id : int, expires_time: timedelta ):
@@ -67,4 +82,12 @@ def create_access_token( email: str, user_id : int, expires_time: timedelta ):
     expires = datetime.utcnow() + expires_time
     encode.update({'exp' : expires})
     
-    return jwt.encode(encode, SECRETY_KEY, algorithm=ALGORITHM)
+    return jwt.encode(encode, JWT_ACCESS_SECRETY_KEY, algorithm=ALGORITHM)
+
+
+def create_refresh_token( email : str, user_id : int, expires_delta: timedelta):
+    encode = {'email' : email, 'user_id' : user_id}
+    expires = datetime.utcnow() + expires_delta
+    encode.update({"exp" : expires})
+
+    return jwt.encode(encode, JWT_REFRESH_SECRET_KEY, ALGORITHM)
