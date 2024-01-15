@@ -1,3 +1,10 @@
+"""
+    Duplicando pois é necessário outro arquivo para importar as definições de dentro do package database.
+    O arquivo insertData.py não 'enxerga' o __init__.py, e os arquivos externos não conseguem 'enxergar' o imports.py,
+    logo os dois se fazem necessários.
+"""
+
+
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
