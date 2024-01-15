@@ -14,19 +14,9 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from itsdangerous import URLSafeTimedSerializer, BadTimeSignature, SignatureExpired
 
 router = APIRouter(prefix="/mail")
-
 templates = Jinja2Templates(directory="templates")
 
 load_dotenv()
-
-"""
-MAIL_USERNAME="cinnamoonpeterdev@gmail.com"
-MAIL_PASSWORD="koed hiul fnjc yajz"
-MAIL_FROM="cinnamoonpeterdev@gmail.com"
-MAIL_PORT=587
-MAIL_SERVER=smtp.gmail.com
-MAIL_FROM_NAME="FastAPI Test"
-"""
 
 MAIL_USERNAME = os.getenv("MAIL_USERNAME", "example@gmail.com")
 MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "google_app_password")
