@@ -13,6 +13,8 @@ from fastapi import APIRouter, Request, Response, Depends
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from itsdangerous import URLSafeTimedSerializer, BadTimeSignature, SignatureExpired
 
+from app.swagger_models.mailResponses import ForgotPasswordDoc
+
 router = APIRouter(prefix="/mail")
 templates = Jinja2Templates(directory="templates")
 
@@ -91,3 +93,22 @@ async def verify_email(request: Request, email_token: Union[str, bytes], db: Ses
     except:
         db.rollback()
         return templates.TemplateResponse(request=request, name="databaseError.html")
+
+@router.post("/forgot_password", response_model=ForgotPasswordDoc)
+async def forgotPassword(request: Request, db: Session = Depends(get_db)):
+    data = await request.json()
+    print(data)
+    user = db.query(User).filter(User.email == data["email"]).first()
+
+    if not user:
+        return Response(json.dumps({"message": "User not found", "error": True}), status_code=404)
+    
+    user.password = data["newPassword"]
+
+    try:
+        db.commit()
+        return Response(content=json.dumps({"message": "Password updated", "error": False}), status_code=200)
+    
+    except:
+        db.rollback()
+        return Response(content=json.dumps({"message": "Database Error", "error": True}), status_code=500)
