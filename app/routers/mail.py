@@ -97,7 +97,6 @@ async def verify_email(request: Request, email_token: Union[str, bytes], db: Ses
 @router.post("/forgot_password", response_model=ForgotPasswordDoc)
 async def forgotPassword(request: Request, db: Session = Depends(get_db)):
     data = await request.json()
-    print(data)
     user = db.query(User).filter(User.email == data["email"]).first()
 
     if not user:
