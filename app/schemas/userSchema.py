@@ -12,9 +12,6 @@ class UserAddSchema(BaseModel):
         "password": "password"
     }
 
-    class Config:
-        orm_mode = True
-
 class UserEditSchema(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
@@ -25,6 +22,3 @@ class UserEditSchema(BaseModel):
         "email": "user@email.com",
         "password": "password"
     }
-
-    class Config:
-        orm_mode = True
