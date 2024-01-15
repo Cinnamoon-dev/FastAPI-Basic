@@ -68,13 +68,15 @@ async def get_user_credentials( user : user_dependency ):
 
 
 @router.get("/refresh", response_model=RefreshTokenResponse)
-async def refresh_token( user : user_dependency, token : token_dependency ):
+async def refresh_token( user : user_dependency ):
     """ Endpoint para renovação de token """
     
     new_access_token = create_refresh_token(
         email=user["email"],
         user_id=user["user_id"],
-        expires_delta=ACCESS_TOKEN_EXPIRE_MINUTES )
+        expires_delta= timedelta( 
+        minutes = ACCESS_TOKEN_EXPIRE_MINUTES
+    ))
     
     reponse_data = {"access_token" : new_access_token}
 

@@ -10,6 +10,5 @@ class MeResponseModel(BaseModel):
   id : str
   email : str
 
-class RefreshTokenResponse:
-  access_token : str
-  access_token = "HASH DO TOKEN"
+class RefreshTokenResponse(BaseModel):
+  access_token : str = "HASH DO TOKEN"
