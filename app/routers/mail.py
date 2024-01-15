@@ -1,19 +1,21 @@
 import os, json
 from typing import Union
-from fastapi import APIRouter, Request, Response, Depends
-from sqlalchemy.orm import Session
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-from dotenv import load_dotenv
 from pydantic import EmailStr
+from dotenv import load_dotenv
 from app.database import get_db
-from itsdangerous import URLSafeTimedSerializer, BadTimeSignature, SignatureExpired
+from sqlalchemy.orm import Session
 from app.models.userModel import User
+from fastapi.responses import HTMLResponse
 from starlette.responses import JSONResponse
+from fastapi.templating import Jinja2Templates
 from app.schemas.mailSchema import SendEmailSchema
+from fastapi import APIRouter, Request, Response, Depends
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
+from itsdangerous import URLSafeTimedSerializer, BadTimeSignature, SignatureExpired
 
 router = APIRouter(prefix="/mail")
+
+templates = Jinja2Templates(directory="templates")
 
 load_dotenv()
 
@@ -71,22 +73,22 @@ async def send_verify_email(email: SendEmailSchema, request: Request, db: Sessio
     return JSONResponse(status_code=200, content={"message": "email has been sent"})
 
 @router.get("/verify_email/{email_token}", response_class=HTMLResponse)
-async def verify_email(email_token: Union[str, bytes], db: Session = Depends(get_db)):
+async def verify_email(request: Request, email_token: Union[str, bytes], db: Session = Depends(get_db)):
 
     try:
         email = token_algo.loads(email_token, max_age=1800)
     except SignatureExpired:
-        return "<p>Tempo expirado, peça outro email.</p>"
+        return templates.TemplateResponse(request=request, name="emailExpired.html")
     except BadTimeSignature:
-        return "<p>Token invalido, peça outro email.</p>"
+        return templates.TemplateResponse(request=request, name="emailInvalidToken.html")
 
     user = db.query(User).filter(User.email == email).first()
     user.isVerified = True
 
     try:
         db.commit()
-        return "<p>User verified successfully</p>"
+        return templates.TemplateResponse(request=request, name="emailSuccess.html")
     
     except:
         db.rollback()
-        return "<p>Database Error, try again later.</p>"
+        return templates.TemplateResponse(request=request, name="databaseError.html")
