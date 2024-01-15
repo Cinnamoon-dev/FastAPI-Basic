@@ -1,4 +1,5 @@
 import json
+from app import bcrypt_context
 from app.database import get_db
 from app.models import userModel
 from fastapi import APIRouter, Response, Depends
@@ -9,7 +10,6 @@ from app.swagger_models.generalResponses import DefaultReponseDoc
 from app.schemas.userSchema import UserAddSchema, UserEditSchema
 
 router = APIRouter(prefix="/user")
-
 
 @router.get("/all", response_model=UserAllDoc)
 async def userAll(db: Session = Depends(get_db)):
@@ -43,10 +43,10 @@ async def userAdd(user: UserAddSchema, db: Session = Depends(get_db)):
         return Response(json.dumps({"error": True, "message": "email already registered"}), 409)
     
     newUser = userModel.User(
-        data.get("name"),
-        data.get("email").lower(),
-        data.get("password"),
-        False
+        name=data.get("name"),
+        email=data.get("email").lower(),
+        password=bcrypt_context.hash(data.get("password")),
+        isVerified=False
     )
     db.add(newUser)
 
