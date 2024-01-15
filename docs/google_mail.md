@@ -9,5 +9,6 @@ Sending an email with google smtp requires an gmail account and an app password 
 MAIL_USERNAME refers to the email address of the sender.<br>
 MAIL_PASSWORD refers to the app password of the sender.<br>
 MAIL_FROM refers to the email of the sender that is going to appear in the email the recipient is going to receive.<br>
-NAME refers to the name of the sender.
+NAME refers to the name of the sender.<br>
+EMAIL_SECRET_KEY refers to the key used to generate the `email_token` to verify the email.
 
