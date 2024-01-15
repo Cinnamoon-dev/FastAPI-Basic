@@ -19,6 +19,15 @@ templates = Jinja2Templates(directory="templates")
 
 load_dotenv()
 
+"""
+MAIL_USERNAME="cinnamoonpeterdev@gmail.com"
+MAIL_PASSWORD="koed hiul fnjc yajz"
+MAIL_FROM="cinnamoonpeterdev@gmail.com"
+MAIL_PORT=587
+MAIL_SERVER=smtp.gmail.com
+MAIL_FROM_NAME="FastAPI Test"
+"""
+
 MAIL_USERNAME = os.getenv("MAIL_USERNAME", "example@gmail.com")
 MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "google_app_password")
 MAIL_FROM = os.getenv("MAIL_FROM", MAIL_USERNAME)
@@ -53,18 +62,12 @@ async def send_verify_email(email: SendEmailSchema, request: Request, db: Sessio
         return Response(json.dumps({"error": True, "message": "Email not found"}), 404)
 
     email_token = token(email_to_verify)
-
-    html = f"""
-    <p>
-        Click in the following link to confirm your email: 
-        <a href="{request.url_for("verify_email",email_token= email_token)}">link</a>
-    </p>
-    """
+    html = templates.TemplateResponse(request=request, name="emailVerify.html", context={"email_token": email_token})
 
     message = MessageSchema(
         subject=TITLE,
         recipients=[email.model_dump().get("email")],
-        body=html,
+        body=html.body,
         subtype=MessageType.html
     )
 
