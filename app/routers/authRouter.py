@@ -6,8 +6,8 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter,  HTTPException
 from app.dependencys.dependency import token_dependency
-from app.schemas.AuthSchema import AuthResponseModel, MeResponseModel
 from app.dependencys import db_dependency, user_dependency, form_auth_dependency
+from app.schemas.AuthSchema import AuthResponseModel, MeResponseModel, RefreshTokenResponse
 from app import ( 
     bcrypt_context, 
     ALGORITHM_TO_HASH, 
@@ -63,18 +63,23 @@ async def get_user_credentials( user : user_dependency ):
             detail="Authentication fail", 
             status_code=status.HTTP_400_BAD_REQUEST
         )
-    
-    response = JSONResponse(
-        content=user,
-        status_code=status.HTTP_200_OK,
-    )
 
-    return response
+    return JSONResponse( content=user, status_code=status.HTTP_200_OK )
 
-@router.get("/refresh")
+
+@router.get("/refresh", response_model=RefreshTokenResponse)
 async def refresh_token( user : user_dependency, token : token_dependency ):
     """ Endpoint para renovação de token """
-    return
+    
+    new_access_token = create_refresh_token(
+        email=user["email"],
+        user_id=user["user_id"],
+        expires_delta=ACCESS_TOKEN_EXPIRE_MINUTES )
+    
+    reponse_data = {"access_token" : new_access_token}
+
+    return JSONResponse( content=reponse_data, status_code=status.HTTP_200_OK )
+
 
 def authenticate_user(email : str, password: str, db) -> bool | User:
     user : User = db.query(User).filter( User.email == email ).first()
@@ -85,7 +90,7 @@ def authenticate_user(email : str, password: str, db) -> bool | User:
     return user
 
 
-def create_access_token( email: str, user_id : int, expires_time: timedelta ):
+def create_access_token( email: str, user_id : int, expires_time: timedelta ) -> str:
     encode = {'email' : email, 'user_id' : user_id}
     expires = datetime.utcnow() + expires_time
     encode.update({'exp' : expires})
@@ -93,7 +98,7 @@ def create_access_token( email: str, user_id : int, expires_time: timedelta ):
     return jwt.encode(encode, JWT_ACCESS_SECRETY_KEY, algorithm=ALGORITHM_TO_HASH)
 
 
-def create_refresh_token( email : str, user_id : int, expires_delta: timedelta):
+def create_refresh_token( email : str, user_id : int, expires_delta: timedelta) -> str:
     encode = {'email' : email, 'user_id' : user_id}
     expires = datetime.utcnow() + expires_delta
     encode.update({"exp" : expires})

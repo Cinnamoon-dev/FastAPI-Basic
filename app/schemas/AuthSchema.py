@@ -9,3 +9,7 @@ class AuthResponseModel(BaseModel):
 class MeResponseModel(BaseModel):
   id : str
   email : str
+
+class RefreshTokenResponse:
+  access_token : str
+  access_token = "HASH DO TOKEN"
