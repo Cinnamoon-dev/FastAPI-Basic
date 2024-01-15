@@ -23,6 +23,7 @@ MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "google_app_password")
 MAIL_FROM = os.getenv("MAIL_FROM", MAIL_USERNAME)
 NAME = os.getenv("NAME", "John Doe")
 TITLE = "Example Title"
+EMAIL_SECRET_KEY = os.getenv("EMAIL_SECRET_KEY", "[->SecretKeyHere!!!<-]")
 
 conf = ConnectionConfig(
     MAIL_USERNAME = MAIL_USERNAME,
@@ -37,7 +38,7 @@ conf = ConnectionConfig(
     VALIDATE_CERTS = True
 )
 
-token_algo = URLSafeTimedSerializer("asdfqwerty", salt="Email_verification_&_Forgot_password")
+token_algo = URLSafeTimedSerializer(EMAIL_SECRET_KEY, salt="Email_verification_&_Forgot_password")
 
 def token(email: EmailStr):
     _token = token_algo.dumps(email)
@@ -62,8 +63,13 @@ async def send_verify_email(email: SendEmailSchema, request: Request, db: Sessio
     )
 
     fm = FastMail(conf)
-    await fm.send_message(message)
-    return JSONResponse(status_code=200, content={"message": "email has been sent"})
+    
+    try:
+        await fm.send_message(message)
+        return JSONResponse(status_code=200, content={"message": "email has been sent", "error": False})
+    
+    except:
+        return {"error": True, "message": "database error"}
 
 @router.get("/verify_email/{email_token}", response_class=HTMLResponse)
 async def verify_email(request: Request, email_token: Union[str, bytes], db: Session = Depends(get_db)):
