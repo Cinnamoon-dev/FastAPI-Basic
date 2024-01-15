@@ -2,10 +2,12 @@ import uvicorn
 from fastapi import FastAPI
 from app.routers import user, mail
 from app.database import Base, engine
+from fastapi.staticfiles import StaticFiles
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+app.mount("/templates", StaticFiles(directory="templates"), name="templates")
 
 app.include_router(user.router)
 app.include_router(mail.router)

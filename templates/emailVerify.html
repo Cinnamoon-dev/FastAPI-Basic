@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <p>
+        Click in the following link to confirm your email: 
+        <a href="{{ url_for("verify_email", email_token=email_token) }}">link</a>
+    </p>
+</body>
+</html>
