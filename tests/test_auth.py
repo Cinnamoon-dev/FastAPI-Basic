@@ -1,8 +1,8 @@
-from .test_model import client
+from tests.conftest import client, test_db
 
 """ Arquivo de teste de autenticação """
 
-def test_add_user_to_login():
+def test_add_user_to_login(test_db):
   valid_user_to_add = {"name" : "pedro","email": "teste@email.com", "password": "1234"}
   response = client.post("/user/add", json=valid_user_to_add)
 
@@ -11,7 +11,7 @@ def test_add_user_to_login():
   assert response_json.get("error") == False
 
 
-def test_login_with_valid_user():
+def test_login_with_valid_user(test_db):
   valid_user = {"username" : "pedro@email.com", "password": 1234}
   response = client.post("/auth/login",data=valid_user)
 
@@ -19,7 +19,7 @@ def test_login_with_valid_user():
   assert "access_token" in response.json()
   assert "refresh_token" in response.json()
 
-def test_login_with_invalid_user():
+def test_login_with_invalid_user(test_db):
   valid_user = {"username" : "sherek@email.com", "password": 1234}
 
   response = client.post("/auth/login",data=valid_user)
