@@ -12,11 +12,12 @@ def test_add_user_to_login(test_db):
 
 
 def test_login_with_valid_user(test_db):
-  valid_user = {"username" : "pedro@email.com", "password": "1234"}
+  valid_user = {"email" : "pedro@email.com", "password": "1234", "name": "pedro"}
+  valid_user_login = {"username": "pedro@email.com", "password": "1234"}
   response = client.post("/user/add", json=valid_user)
-  response = client.post("/auth/login",data=valid_user)
-
-  assert response.status_code == 202
+  response = client.post("/auth/login",data=valid_user_login)
+  
+  assert response.is_success == True
   assert "access_token" in response.json()
   assert "refresh_token" in response.json()
 
