@@ -5,8 +5,8 @@ from datetime import timedelta, datetime
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter,  HTTPException
-from app.dependencys.dependency import token_dependency
-from app.dependencys import db_dependency, user_dependency, form_auth_dependency
+from app.dependencies.dependency import token_dependency
+from app.dependencies import db_dependency, user_dependency, form_auth_dependency
 from app.schemas.AuthSchema import AuthResponseModel, MeResponseModel, RefreshTokenResponse
 from app import ( 
     bcrypt_context, 
