@@ -12,7 +12,8 @@ def test_add_user_to_login(test_db):
 
 
 def test_login_with_valid_user(test_db):
-  valid_user = {"username" : "pedro@email.com", "password": 1234}
+  valid_user = {"username" : "pedro@email.com", "password": "1234"}
+  response = client.post("/user/add", json=valid_user)
   response = client.post("/auth/login",data=valid_user)
 
   assert response.status_code == 202
@@ -20,12 +21,10 @@ def test_login_with_valid_user(test_db):
   assert "refresh_token" in response.json()
 
 def test_login_with_invalid_user(test_db):
-  valid_user = {"username" : "sherek@email.com", "password": 1234}
-
+  valid_user = {"username" : "sherek@email.com", "password": "1234"}
   response = client.post("/auth/login",data=valid_user)
-  response_json = response.json()
 
   assert response.status_code != 202
   assert "access_token" not in response.json()
   assert "refresh_token" not in response.json()
-  assert response_json.get("error") == True
+  assert response.is_success == False
