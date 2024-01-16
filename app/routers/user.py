@@ -9,7 +9,7 @@ from app.swagger_models.userResponses import UserAllDoc, UserViewDoc
 from app.swagger_models.generalResponses import DefaultReponseDoc
 from app.schemas.userSchema import UserAddSchema, UserEditSchema
 
-router = APIRouter(prefix="/user")
+router = APIRouter(prefix="/user", tags=["user"])
 
 @router.get("/all", response_model=UserAllDoc)
 async def userAll(db: Session = Depends(get_db)):

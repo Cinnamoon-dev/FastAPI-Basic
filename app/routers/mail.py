@@ -15,7 +15,7 @@ from itsdangerous import URLSafeTimedSerializer, BadTimeSignature, SignatureExpi
 
 from app.swagger_models.mailResponses import ForgotPasswordDoc
 
-router = APIRouter(prefix="/mail")
+router = APIRouter(prefix="/mail", tags=["mail"])
 templates = Jinja2Templates(directory="templates")
 
 load_dotenv()
