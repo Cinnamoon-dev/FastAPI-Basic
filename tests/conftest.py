@@ -8,7 +8,7 @@ from app.database import Base, get_db,SQLALCHEMY_DATABASE_TEST_URL
 
 engine = create_engine( 
     SQLALCHEMY_DATABASE_TEST_URL, 
-    # connect_args={"check_same_thread": False}
+    # connect_args={"check_same_thread": False} # Use this for sqlite connections
 )
 
 Base.metadata.create_all(bind=engine)
