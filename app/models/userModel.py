@@ -1,5 +1,6 @@
 from app.database import Base
-from sqlalchemy import BigInteger, Column, String, Boolean
+from sqlalchemy.orm import relationship
+from sqlalchemy import BigInteger, Column, String, Boolean, Integer, ForeignKey
 
 
 class User(Base):
@@ -10,6 +11,8 @@ class User(Base):
     email = Column(String, unique=True)
     password = Column(String, nullable=False)
     isVerified = Column(Boolean, nullable=False)
+
+    cargo_id = Column(Integer,ForeignKey("cargo.id"), nullable=False)
 
     def __init__(self, name, email, password, isVerified):
         self.name = name
