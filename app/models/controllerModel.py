@@ -11,10 +11,13 @@ class Controller( Base ):
   id = Column(Integer, primary_key=True)
   nome = Column(String(255), unique=True, nullable=False)
 
-  regras = relationship("regra", backref="controller", lazy=True)
-
   def __init__( self, nome: str ):
     self.nome = nome
   
+  def to_dict(self):
+    data = {}
+    data["id"] = self.id
+    data["nome"] = self.nome
+
   def __repr__( self ):
     return f"<Controller ${self.nome}>"

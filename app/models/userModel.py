@@ -1,18 +1,18 @@
+from .cargoModel import Cargo
 from app.database import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy import BigInteger, Column, String, Boolean, Integer, ForeignKey
 
-
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = "user"
 
-    id = Column(BigInteger, primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True)
     name = Column(String, nullable=False)
-    email = Column(String, unique=True)
     password = Column(String, nullable=False)
     isVerified = Column(Boolean, nullable=False)
-
-    cargo_id = Column(Integer,ForeignKey("cargo.id"), nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    
+    cargo_id = Column(Integer, ForeignKey(Cargo.id), nullable=False)
 
     def __init__(self, name, email, password, isVerified):
         self.name = name
@@ -25,8 +25,9 @@ class User(Base):
             "id": self.id,
             "name": self.name,
             "email": self.email,
+            "cargo" : self.cargo,
             "password": self.password,
-            "isVerified": self.isVerified
+            "isVerified": self.isVerified,
         }
 
         return data
