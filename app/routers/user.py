@@ -3,6 +3,7 @@ from app import bcrypt_context
 from app.database import get_db
 from app.models import userModel
 from fastapi import APIRouter, Response, Depends
+from . import dep_resource
 from sqlalchemy.orm import Session
 from app.routers import paginate, instance_update
 from app.swagger_models.userResponses import UserAllDoc, UserViewDoc
@@ -12,7 +13,7 @@ from app.schemas.userSchema import UserAddSchema, UserEditSchema
 router = APIRouter(prefix="/user", tags=["user"])
 
 @router.get("/all", response_model=UserAllDoc)
-async def userAll(db: Session = Depends(get_db)):
+async def userAll(db: Session = Depends(get_db), dep = dep_resource):
     users, output = paginate(db.query(userModel.User), 1, 10)
 
     for user in users:

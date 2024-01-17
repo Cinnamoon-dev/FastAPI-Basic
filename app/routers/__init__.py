@@ -1,5 +1,23 @@
 import math
+from typing import Annotated
+from starlette import status
+from jose import JWTError, jwt
 from sqlalchemy.orm import Query
+from sqlalchemy.orm import Session
+from app.models.userModel import User
+from app.models.regraModel import Regra
+from app.database.imports import get_db
+from fastapi import Depends, HTTPException
+from app.models.controllerModel import Controller
+from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordRequestForm
+from app import ALGORITHM_TO_HASH, JWT_ACCESS_SECRETY_KEY
+
+# exportando types annotations que vão ser muito utilizadas
+db_dependency = Annotated[Session, Depends(get_db)]
+form_auth_dependency = Annotated[OAuth2PasswordRequestForm, Depends()]
+
+# -------------------------------------------------------------------------------------------------- #
 
 # item pagination
 def paginate(query: Query, page: int = 1, rows_per_page: int = 1):
@@ -61,3 +79,61 @@ def instance_update(instance, request_json):
     # Hash password
     if "password" in request_json:
         setattr(instance, 'password', request_json.get("password"))
+
+# -------------------------------------------------------------------------------------------------- #
+
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/login")
+token_dependency = Annotated[str, Depends(oauth2_bearer)]
+
+def get_current_user( token : token_dependency ):
+  """ Dependencia para obter o usuario logado.  """
+  
+  try:
+    payload = jwt.decode(token, JWT_ACCESS_SECRETY_KEY, algorithms=[ALGORITHM_TO_HASH])
+    email : str = payload.get("email")
+    user_id : int = payload.get("user_id")
+
+    if None in [email, user_id]:
+      raise HTTPException(
+          status_code=status.HTTP_401_UNAUTHORIZED,
+          detail={"message": "Não foi possível encontrar o user", "error": True}
+      )
+    return {"email" : email, "user_id" : user_id}
+  
+  except JWTError:
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail={"message": "Não foi possível encontrar o user", "error": True}
+    )
+
+user_dependency = Annotated[dict, Depends(get_current_user)]
+
+# -------------------------------------------------------------------------------------------------- #
+
+def resource( db : db_dependency, resource_name : str, user : user_dependency ) -> None:
+  """ Função que valida a permissao de acesso ao endpoint por parte do usuario """  
+  
+  user_instance : User = db.session.query(User).get(user["user_id"])
+  user_role = user_instance.cargo_id
+  controller, action = resource_name.split("-")
+  
+  data = db.query(
+    Regra.permitir,
+    Regra.cargo_id,
+    Regra.action.label("action"),
+    Controller.nome.label("controller")
+  ).join( Controller, Regra.controller_id == Controller.id ).filter(
+    Regra.action == action,
+    Regra.cargo_id == user_role,
+    Controller.nome == controller
+  ).first()
+
+  if data is None or not data.permitir:
+    return HTTPException(
+      status_code=status.HTTP_401_UNAUTHORIZED,
+      detail={"description" : "Usuario não autorizado"},
+    )
+  
+  return None
+
+dep_resource = Annotated[None, Depends(resource)]
