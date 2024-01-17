@@ -5,8 +5,7 @@ from datetime import timedelta, datetime
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter,  HTTPException
-from app.dependencies.dependency import token_dependency
-from app.dependencies import db_dependency, user_dependency, form_auth_dependency
+from . import db_dependency, form_auth_dependency, user_dependency
 from app.schemas.AuthSchema import AuthResponseModel, MeResponseModel, RefreshTokenResponse
 from app import ( 
     bcrypt_context, 
@@ -21,7 +20,7 @@ from app import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login", response_model=AuthResponseModel)
+@router.post("/login", response_model=AuthResponseModel, )
 async def login( db : db_dependency, data_form : form_auth_dependency ):
     """ Endpoint de Login do sistema """
 
@@ -83,14 +82,9 @@ async def refresh_token( user : user_dependency ):
     return JSONResponse( content=reponse_data, status_code=status.HTTP_200_OK )
 
 
-def authenticate_user(email : str, password: str, db) -> bool | User:
+def authenticate_user(email : str, password: str, db : db_dependency) -> bool | User:
     user : User = db.query(User).filter( User.email == email ).first()
-
-    if user is None or not bcrypt_context.verify(password, user.password):
-        return False
-    
-    return user
-
+    return False if (user is None or not bcrypt_context.verify(password, user.password)) else user
 
 def create_access_token( email: str, user_id : int, expires_time: timedelta ) -> str:
     encode = {'email' : email, 'user_id' : user_id}
