@@ -1,6 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
-from app.routers import user, mail, authRouter
+from app.routers import auth, user, mail
 from app.database import Base, engine
 from fastapi.staticfiles import StaticFiles
 
@@ -10,7 +10,7 @@ app = FastAPI()
 app.mount("/templates", StaticFiles(directory="templates"), name="templates")
 
 app.include_router(user.router)
-app.include_router(authRouter.router)
+app.include_router(auth.router)
 app.include_router(mail.router)
 
 if __name__ == "__main__":
