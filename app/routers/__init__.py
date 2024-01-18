@@ -1,3 +1,4 @@
+from functools import wraps
 import math
 from typing import Annotated
 from starlette import status
@@ -79,6 +80,7 @@ def instance_update(instance, request_json):
       setattr(instance, 'password', bcrypt_context.hash(request_json.get("password")))
 
 # -------------------------------------------------------------------------------------------------- #
+# Obter o usuario logado
 
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/login")
 token_dependency = Annotated[str, Depends(oauth2_bearer)]
@@ -94,44 +96,49 @@ def get_current_user( token : token_dependency ):
     if None in [email, user_id]:
       raise HTTPException(
           status_code=status.HTTP_401_UNAUTHORIZED,
-          detail={"message": "Não foi possível encontrar o user", "error": True}
+          detail={"message": "Usuario não autorizado", "error" : True}
       )
     return {"email" : email, "user_id" : user_id}
   
   except JWTError:
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail={"message": "Não foi possível encontrar o user", "error": True}
+        detail={"message": "Usuario não autorizado", "error" : True}
     )
 
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 # -------------------------------------------------------------------------------------------------- #
+# access control
 
-def resource( db : db_dependency, resource_name : str, user : user_dependency ) -> None:
-  """ Função que valida a permissao de acesso ao endpoint por parte do usuario """  
-  
-  user_instance : Usuario = db.session.query(Usuario).get(user["user_id"])
-  user_role = user_instance.cargo_id
-  controller, action = resource_name.split("-")
-  
-  data = db.query(
-    Regra.permitir,
-    Regra.cargo_id,
-    Regra.action.label("action"),
-    Controller.nome.label("controller")
-  ).join( Controller, Regra.controller_id == Controller.id ).filter(
-    Regra.action == action,
-    Regra.cargo_id == user_role,
-    Controller.nome == controller
-  ).first()
+def resource(resource_name: str, token : token_dependency):
+  def wrapper(f):
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+      db = db_dependency
+      user = get_current_user()
 
-  if data is None or not data.permitir:
-    return HTTPException(
-      status_code=status.HTTP_401_UNAUTHORIZED,
-      detail={"description" : "Usuario não autorizado"},
-    )
-  
-  return None
+      user_instance : Usuario = db.session.query(Usuario).get(user["user_id"])
+      user_role = user_instance.cargo_id
+      controller, action = resource_name.split("-")
+      
+      data = db.query(
+        Regra.permitir,
+        Regra.cargo_id,
+        Regra.action.label("action"),
+        Controller.nome.label("controller")
+      ).join( Controller, Regra.controller_id == Controller.id ).filter(
+        Regra.action == action,
+        Regra.cargo_id == user_role,
+        Controller.nome == controller
+      ).first()
 
-dep_resource = Annotated[None, Depends(resource)]
+      if data is None or not data.permitir:
+        return HTTPException(
+          status_code=status.HTTP_401_UNAUTHORIZED,
+          detail={"description" : "Usuario não autorizado"},
+        )
+      
+      return f(*args, **kwargs)
+    return wrapped
+  return wrapper

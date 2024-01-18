@@ -1,8 +1,8 @@
 from jose import jwt
 from starlette import status
-from app.models.userModel import User
 from datetime import timedelta, datetime
 from fastapi.responses import JSONResponse
+from app.models.usuarioModel import Usuario
 from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter,  HTTPException
 from . import db_dependency, form_auth_dependency, user_dependency
@@ -82,8 +82,9 @@ async def refresh_token( user : user_dependency ):
     return JSONResponse( content=reponse_data, status_code=status.HTTP_200_OK )
 
 
-def authenticate_user(email : str, password: str, db : db_dependency) -> bool | User:
-    user : User = db.query(User).filter( User.email == email ).first()
+def authenticate_user(email : str, password: str, db : db_dependency) -> bool | Usuario:
+    user : Usuario = db.query(Usuario).filter( Usuario.email == email ).first()
+    
     return False if (user is None or not bcrypt_context.verify(password, user.password)) else user
 
 def create_access_token( email: str, user_id : int, expires_time: timedelta ) -> str:
