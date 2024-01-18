@@ -4,8 +4,8 @@ from pydantic import EmailStr
 from dotenv import load_dotenv
 from app.database import get_db
 from sqlalchemy.orm import Session
-from app.models.userModel import User
 from fastapi.responses import HTMLResponse
+from app.models.usuarioModel import Usuario
 from starlette.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from app.schemas.mailSchema import SendEmailSchema
@@ -49,7 +49,7 @@ def token(email: EmailStr):
 @router.post("/send_verify_email")
 async def send_verify_email(email: SendEmailSchema, request: Request, db: Session = Depends(get_db)):
     email_to_verify = str(email.model_dump()["email"])
-    user = db.query(User).filter(User.email == email_to_verify).first()
+    user = db.query(Usuario).filter(Usuario.email == email_to_verify).first()
 
     if not user:
         return Response(json.dumps({"error": True, "message": "Email not found"}), 404)
@@ -83,8 +83,8 @@ async def verify_email(request: Request, email_token: Union[str, bytes], db: Ses
     except BadTimeSignature:
         return templates.TemplateResponse(request=request, name="emailInvalidToken.html")
 
-    user = db.query(User).filter(User.email == email).first()
-    user.isVerified = True
+    user = db.query(Usuario).filter(Usuario.email == email).first()
+    user.is_verified = True
 
     try:
         db.commit()
@@ -97,7 +97,7 @@ async def verify_email(request: Request, email_token: Union[str, bytes], db: Ses
 @router.post("/forgot_password", response_model=ForgotPasswordDoc)
 async def forgotPassword(request: Request, db: Session = Depends(get_db)):
     data = await request.json()
-    user = db.query(User).filter(User.email == data["email"]).first()
+    user = db.query(Usuario).filter(Usuario.email == data["email"]).first()
 
     if not user:
         return Response(json.dumps({"message": "User not found", "error": True}), status_code=404)

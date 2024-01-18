@@ -4,10 +4,10 @@ from starlette import status
 from jose import JWTError, jwt
 from sqlalchemy.orm import Query
 from sqlalchemy.orm import Session
-from app.models.userModel import User
 from app.models.regraModel import Regra
 from app.database.imports import get_db
 from fastapi import Depends, HTTPException
+from app.models.usuarioModel import Usuario
 from app.models.controllerModel import Controller
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.security import OAuth2PasswordRequestForm
@@ -113,7 +113,7 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 def resource( db : db_dependency, resource_name : str, user : user_dependency ) -> None:
   """ Função que valida a permissao de acesso ao endpoint por parte do usuario """  
   
-  user_instance : User = db.session.query(User).get(user["user_id"])
+  user_instance : Usuario = db.session.query(Usuario).get(user["user_id"])
   user_role = user_instance.cargo_id
   controller, action = resource_name.split("-")
   
