@@ -74,17 +74,16 @@ async def userEdit(id: int, user: UserEditSchema, db: Session = Depends(get_db))
 
     data = user.model_dump()
 
-    if "email" in data and data.get("email") is not None:
-        repeatedEmail = db.query(Usuario).filter(Usuario.email == data.get("email")).first()
+    if data.get("email") is not None:
+        lower_email = data.get("email").lower()
+        repeatedEmail = db.query(Usuario).filter(Usuario.email == lower_email).first()
 
         if repeatedEmail:
             return {"error": True, "message": "Email already registered"}, 409
 
     instance_update(oldUser, data)
-    db.add(oldUser)
-
+    
     try:
-        db.flush()
         db.commit()
         return {"error": False, "message": "deu bom"}
     
