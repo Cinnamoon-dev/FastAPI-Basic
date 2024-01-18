@@ -2,7 +2,10 @@ from app.database import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy import BigInteger, Column, String, Boolean, Integer, ForeignKey
 
+
 class Usuario(Base):
+    """  Tabela que representa um usuario válido no sistema. """
+
     __tablename__ = "usuario"
 
     id = Column(BigInteger, primary_key=True)

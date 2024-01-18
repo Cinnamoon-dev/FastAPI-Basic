@@ -46,9 +46,11 @@ def token(email: EmailStr):
     _token = token_algo.dumps(email)
     return _token
 
+
 @router.post("/send_verify_email")
 async def send_verify_email(email: SendEmailSchema, request: Request, db: Session = Depends(get_db)):
-    email_to_verify = str(email.model_dump()["email"])
+    
+    email_to_verify = str(email.model_dump()["email"]).lower()
     user = db.query(Usuario).filter(Usuario.email == email_to_verify).first()
 
     if not user:
@@ -73,13 +75,16 @@ async def send_verify_email(email: SendEmailSchema, request: Request, db: Sessio
     except:
         return {"error": True, "message": "database error"}
 
+
 @router.get("/verify_email/{email_token}", response_class=HTMLResponse)
 async def verify_email(request: Request, email_token: Union[str, bytes], db: Session = Depends(get_db)):
 
     try:
-        email = token_algo.loads(email_token, max_age=1800)
+        email = token_algo.loads(email_token, max_age=1800).lower()
+
     except SignatureExpired:
         return templates.TemplateResponse(request=request, name="emailExpired.html")
+    
     except BadTimeSignature:
         return templates.TemplateResponse(request=request, name="emailInvalidToken.html")
 
@@ -94,10 +99,12 @@ async def verify_email(request: Request, email_token: Union[str, bytes], db: Ses
         db.rollback()
         return templates.TemplateResponse(request=request, name="databaseError.html")
 
+
 @router.post("/forgot_password", response_model=ForgotPasswordDoc)
 async def forgotPassword(request: Request, db: Session = Depends(get_db)):
+
     data = await request.json()
-    user = db.query(Usuario).filter(Usuario.email == data["email"]).first()
+    user = db.query(Usuario).filter(Usuario.email == data["email"].lower()).first()
 
     if not user:
         return Response(json.dumps({"message": "User not found", "error": True}), status_code=404)
