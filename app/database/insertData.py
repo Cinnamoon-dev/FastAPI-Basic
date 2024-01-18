@@ -17,7 +17,7 @@ def populate():
         except:
             print(f"Error in file: {filePath}")
     
-    insert("/scripts/user_test.sql")
+    # insert("/scripts/user_test.sql")
     insert("/scripts/regra_test.sql")
 
 if __name__ == "__main__":
