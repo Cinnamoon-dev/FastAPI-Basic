@@ -42,7 +42,6 @@ async def userView(id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/add", response_model=DefaultReponseDoc)
-@resource("usuario-add")
 async def userAdd( user: UserAddSchema, db: Session = Depends(get_db) ):
     data = user.model_dump()
     email = data.get("email").lower()
