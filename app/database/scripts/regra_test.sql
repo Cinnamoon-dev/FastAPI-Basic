@@ -6,11 +6,11 @@ INSERT INTO cargo (id, nome) VALUES (1, 'admin');
 ALTER SEQUENCE cargo_id_seq RESTART WITH 2;
 
 ---
--- User
+-- Usuarios
 ---
 
-INSERT INTO public.user (id, name, password, isverified, email, cargo_id) VALUES (1, 'pedro', '$6$rounds=656000$XKEEd0hGhLt6g0Vk$Or8a6DgbayHxpwQ.H9lsOlFLPGiLg2gprob1NqeS0Xu0TJytOFXJ5TTVv1xA/pSSK0kwECxACxaMSxOl781fU.', True, 'teste@email.com', 1);
-ALTER SEQUENCE user_id_seq RESTART WITH 2;
+INSERT INTO usuario (id, name, password, is_verified, email, cargo_id) VALUES (1, 'pedro', '$6$rounds=656000$XKEEd0hGhLt6g0Vk$Or8a6DgbayHxpwQ.H9lsOlFLPGiLg2gprob1NqeS0Xu0TJytOFXJ5TTVv1xA/pSSK0kwECxACxaMSxOl781fU.', True, 'teste@email.com', 1);
+ALTER SEQUENCE usuario_id_seq RESTART WITH 2;
 
 ---
 -- Controllers
