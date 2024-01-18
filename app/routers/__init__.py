@@ -11,7 +11,7 @@ from app.models.usuarioModel import Usuario
 from app.models.controllerModel import Controller
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.security import OAuth2PasswordRequestForm
-from app import ALGORITHM_TO_HASH, JWT_ACCESS_SECRETY_KEY
+from app import ALGORITHM_TO_HASH, JWT_ACCESS_SECRETY_KEY, bcrypt_context
 
 # exportando types annotations que vão ser muito utilizadas
 db_dependency = Annotated[Session, Depends(get_db)]
@@ -66,19 +66,17 @@ def instance_update(instance, request_json):
     `instance = User.query.get(id)`
     """
 
-    instance_keys = list(instance.to_dict().keys())
+    instance_keys : list[str] = list(instance.to_dict().keys())
 
     for key in instance_keys:
-        if key in request_json:
-            setattr(instance, key, request_json.get(key))
+      if key in request_json and request_json[key] is not None:
+        setattr(instance, key, request_json.get(key))
     
-    if "email" in request_json:
-        setattr(instance, 'email', request_json.get("email").lower())
+    if request_json.get("email") is not None:
+      setattr(instance, 'email', request_json.get("email").lower())
     
-    # TODO
-    # Hash password
-    if "password" in request_json:
-        setattr(instance, 'password', request_json.get("password"))
+    if request_json.get("password") is not None:
+      setattr(instance, 'password', bcrypt_context.hash(request_json.get("password")))
 
 # -------------------------------------------------------------------------------------------------- #
 
