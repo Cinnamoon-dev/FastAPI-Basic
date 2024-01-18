@@ -4,5 +4,5 @@ CREATE TABLE "users" (
   "id" integer PRIMARY KEY,
   "name" varchar,
   "email" varchar,
-  "isVerified" bool
+  "is_verified" bool
 );
