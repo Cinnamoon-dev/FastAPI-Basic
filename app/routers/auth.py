@@ -20,17 +20,26 @@ from app import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login", response_model=AuthResponseModel, )
+@router.post("/login", response_model = AuthResponseModel )
 async def login( db : db_dependency, data_form : form_auth_dependency ):
     """ Endpoint de Login do sistema """
 
-    user = authenticate_user(data_form.username, data_form.password, db)
+    user : Usuario = authenticate_user( (data_form.username).lower(), db)
    
     if not user:
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail={"message": "Usuário não encontrado", "error": True}
-        )
+            content=jsonable_encoder({"error" : True, "message" : "Usuário não encontrado"}))
+
+    if user.is_verified == False:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content=jsonable_encoder({"error" : False, "message" : "Usuário com email não verificado"}))
+
+    if not bcrypt_context.verify(data_form.password, user.password):
+        return JSONResponse(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            content=jsonable_encoder({"error" : True, "message" : "Credenciais incorretas"}))
 
     token = create_access_token( user.email, user.id, timedelta( 
         minutes = ACCESS_TOKEN_EXPIRE_MINUTES
@@ -40,17 +49,12 @@ async def login( db : db_dependency, data_form : form_auth_dependency ):
     ) )
     
     content_response = jsonable_encoder({
-        "token_type": "bearer",
+        "token_type": "Bearer",
         "access_token" : token,
         "refresh_token" : refresh_token,
     })
     
-    response = JSONResponse(
-        status_code=status.HTTP_202_ACCEPTED,
-        content=jsonable_encoder(content_response), 
-    )
-
-    return response
+    return JSONResponse( status_code=status.HTTP_202_ACCEPTED, content=jsonable_encoder(content_response) )
 
 
 @router.get("/me", status_code = status.HTTP_200_OK, response_model=MeResponseModel)
@@ -84,10 +88,16 @@ async def refresh_token():
     return JSONResponse( content=reponse_data, status_code=status.HTTP_200_OK )
 
 
-def authenticate_user(email : str, password: str, db : db_dependency) -> bool | Usuario:
+def authenticate_user(email : str, db : db_dependency):
+    """ 
+        Function to validate if a user exist in db 
+
+        returns usuario_instance if exist user in database
+        returns false if user_email dont match with a user in db
+    """
+
     user : Usuario = db.query(Usuario).filter( Usuario.email == email ).first()
-    
-    return False if (user is None or not bcrypt_context.verify(password, user.password)) else user
+    return user if user is not None else False
 
 def create_access_token( email: str, user_id : int, expires_time: timedelta ) -> str:
     encode = {'email' : email, 'user_id' : user_id}
