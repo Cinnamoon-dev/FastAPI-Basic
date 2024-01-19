@@ -80,7 +80,7 @@ def instance_update(instance, request_json):
       setattr(instance, 'password', bcrypt_context.hash(request_json.get("password")))
 
 # -------------------------------------------------------------------------------------------------- #
-# Obter o usuario logado
+# JWT Validator
 
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/login")
 token_dependency = Annotated[str, Depends(oauth2_bearer)]
@@ -104,19 +104,19 @@ def get_current_user( token : token_dependency ):
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail={"message": "Usuario não autorizado", "error" : True}
-    )
+  )
 
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 # -------------------------------------------------------------------------------------------------- #
 # access control
 
-def resource(resource_name: str, token : token_dependency):
+def resource( resource_name: str ):
   def wrapper(f):
     @wraps(f)
     def wrapped(*args, **kwargs):
       db = db_dependency
-      user = get_current_user()
+      user = get_current_user(token_dependency)
 
       user_instance : Usuario = db.session.query(Usuario).get(user["user_id"])
       user_role = user_instance.cargo_id
