@@ -1,8 +1,8 @@
 import json
-from . import resource
 from app import bcrypt_context
 from app.database import get_db
 from sqlalchemy.orm import Session
+from . import resource, get_current_user
 from app.models.usuarioModel import Usuario
 from fastapi import APIRouter, Response, Depends
 from app.routers import paginate, instance_update
@@ -14,9 +14,9 @@ from app.schemas.userSchema import UserAddSchema, UserEditSchema
 
 router = APIRouter(prefix="/user", tags=["user"])
 
-@router.get("/all", response_model=UserAllDoc)
+@router.get("/all", response_model=UserAllDoc, dependencies=[Depends(get_current_user)])
 @resource("usuario-all")
-async def userAll(db: Session = Depends(get_db)):
+async def userAll( db = Depends(get_db)):
     users, output = paginate(db.query(Usuario), 1, 10)
 
     for user in users:
@@ -25,7 +25,7 @@ async def userAll(db: Session = Depends(get_db)):
     return output
 
 
-@router.get("/view/{id:int}", response_model=UserViewDoc)
+@router.get("/view/{id:int}", response_model=UserViewDoc, dependencies=[Depends(get_current_user)])
 @resource("usuario-view")
 async def userView(id: int, db: Session = Depends(get_db)):
     user = db.query(Usuario).get(id)
@@ -68,7 +68,7 @@ async def userAdd( user: UserAddSchema, db: Session = Depends(get_db) ):
         return {"error": True, "message": "database error"}
 
 
-@router.put("/edit/{id:int}", response_model=DefaultReponseDoc)
+@router.put("/edit/{id:int}", response_model=DefaultReponseDoc, dependencies=[Depends(get_current_user)])
 @resource("usuario-edit")
 async def userEdit(id: int, user: UserEditSchema, db: Session = Depends(get_db)):
     oldUser = db.query(Usuario).get(id)
@@ -96,7 +96,7 @@ async def userEdit(id: int, user: UserEditSchema, db: Session = Depends(get_db))
         return {"error": True, "message": "database error"}
 
 
-@router.delete("/delete/{id:int}", response_model=DefaultReponseDoc)
+@router.delete("/delete/{id:int}", response_model=DefaultReponseDoc, dependencies=[Depends(get_current_user)])
 @resource("usuario-delete")
 async def userView(id: int, db: Session = Depends(get_db)):
     user = db.query(Usuario).filter(Usuario.id == id).first()
@@ -107,7 +107,6 @@ async def userView(id: int, db: Session = Depends(get_db)):
     db.delete(user)
     
     try:
-        db.flush()
         db.commit()
         return {"error": False, "message": "deu bom"}
 

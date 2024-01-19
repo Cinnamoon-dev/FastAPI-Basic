@@ -4,8 +4,8 @@ from datetime import timedelta, datetime
 from fastapi.responses import JSONResponse
 from app.models.usuarioModel import Usuario
 from fastapi.encoders import jsonable_encoder
-from fastapi import APIRouter,  HTTPException
-from . import db_dependency, form_auth_dependency, user_dependency
+from fastapi import APIRouter,  HTTPException, Depends
+from . import db_dependency, form_auth_dependency, get_current_user, user_dependency
 from app.schemas.AuthSchema import AuthResponseModel, MeResponseModel, RefreshTokenResponse
 from app import ( 
     bcrypt_context, 
@@ -56,7 +56,7 @@ async def login( db : db_dependency, data_form : form_auth_dependency ):
 @router.get("/me", status_code = status.HTTP_200_OK, response_model=MeResponseModel)
 async def get_user_credentials( user : user_dependency ):
     """ Endpoint para retornar os dados do user logado """
-    
+
     if user is None:
         raise HTTPException(
             detail="Authentication fail", 
@@ -66,10 +66,12 @@ async def get_user_credentials( user : user_dependency ):
     return JSONResponse( content=user, status_code=status.HTTP_200_OK )
 
 
-@router.get("/refresh", response_model=RefreshTokenResponse)
-async def refresh_token( user : user_dependency ):
+@router.get("/refresh", response_model=RefreshTokenResponse, dependencies=[Depends(get_current_user)])
+async def refresh_token():
     """ Endpoint para renovação de token """
     
+    user = get_current_user()
+
     new_access_token = create_refresh_token(
         email=user["email"],
         user_id=user["user_id"],
