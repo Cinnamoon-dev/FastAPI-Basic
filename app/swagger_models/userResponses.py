@@ -1,9 +1,6 @@
 from pydantic import BaseModel
+from app.swagger_models.cargoResponses import CargoDoc
 from app.swagger_models.generalResponses import PaginationDoc
-
-class CargoDoc(BaseModel):
-    id : int
-    nome : str
 
 class UserDoc(BaseModel):
     id: int
