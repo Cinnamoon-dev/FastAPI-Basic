@@ -31,7 +31,9 @@ class Regra( Base ):
     data["permitir"] = self.permitir
     data["controller_id"] = self.controller_id
 
+    return data
+
   def __repr__( self ):
     return (
-      f"<Regra ${self.id}, ${self.action}, ${self.cargo_id}, ${self.controller_id}, ${self.permitir} >"
+      f"<Regra {self.id}, {self.action}, {self.cargo_id}, {self.controller_id}, {self.permitir}>"
     )

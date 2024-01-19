@@ -37,4 +37,4 @@ class Usuario(Base):
         return data
 
     def __repr__(self):
-        return f"<User {self.id} {self.name} {self.email} {self.password} {self.is_verified}>" 
+        return f"<User {self.id}, {self.name}, {self.email}, {self.password}, {self.is_verified}>" 

@@ -17,6 +17,8 @@ class Controller( Base ):
     data = {}
     data["id"] = self.id
     data["nome"] = self.nome
+    
+    return data
 
   def __repr__( self ):
-    return f"<Controller ${self.nome}>"
+    return f"<Controller {self.id}, {self.nome}>"

@@ -24,4 +24,4 @@ class Cargo( Base ):
     return data
 
   def __repr__( self ):
-    return f"<Controller ${self.id}, ${self.nome}"
+    return f"<Controller {self.id}, {self.nome}"
