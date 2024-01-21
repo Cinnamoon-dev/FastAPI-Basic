@@ -14,8 +14,10 @@ PASSWORD = os.getenv("POSTGRES_PASSWORD", "1234")
 HOST = os.getenv("POSTGRES_HOST", "localhost")
 PORT = os.getenv("POSTGRES_PORT", 5432)
 DATABASE = os.getenv("POSTGRES_DB", "fastdb")
+TEST_DATABASE = os.getenv("TEST_POSTGRES_DB", "postgres")
 
 SQLALCHEMY_DATABASE_URL = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
+SQLALCHEMY_DATABASE_TEST_URL = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{TEST_DATABASE}"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
