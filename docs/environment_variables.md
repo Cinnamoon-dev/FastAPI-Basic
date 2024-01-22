@@ -1,6 +1,8 @@
 ## Environment variables
 There are specific files used to provide environment variables to each service in the compose file. These files should be in the root level of the project.
 
+You can also create these variables for you development environment in a `.env` file.
+
 ### Database
 The `.db.env` file provides the variables below to the database service:
 - POSTGRES_USER
