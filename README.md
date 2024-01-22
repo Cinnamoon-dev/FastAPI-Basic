@@ -12,6 +12,12 @@ Install the dependencies:
 $ poetry install
 ```
 
+Insert the needed mocked data:
+
+```bash
+$ python3 -m app.database.insertData
+```
+
 Source the virtualenv and run the project:
 
 ```bash
