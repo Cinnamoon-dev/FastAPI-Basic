@@ -2,22 +2,52 @@ import json
 from app import bcrypt_context
 from app.database import get_db
 from sqlalchemy.orm import Session
-from . import resource, get_current_user
 from app.models.usuarioModel import Usuario
 from fastapi import APIRouter, Response, Depends
+from . import PermissionChecker, get_current_user
 from app.routers import paginate, instance_update
-from app.swagger_models.userResponses import UserAllDoc, UserViewDoc
-from app.swagger_models.generalResponses import DefaultReponseDoc
 from app.schemas.userSchema import UserAddSchema, UserEditSchema
+from app.swagger_models.generalResponses import DefaultReponseDoc
+from app.swagger_models.userResponses import UserAllDoc, UserViewDoc
 
 
 
 router = APIRouter(prefix="/user", tags=["user"])
 
-@router.get("/all", response_model=UserAllDoc, dependencies=[Depends(get_current_user)])
-@resource("usuario-all")
-async def userAll( db = Depends(get_db)):
-    users, output = paginate(db.query(Usuario), 1, 10)
+
+@router.get("/all/notVerified")
+async def userAllNotVerified(
+        db = Depends(get_db),
+        authorize: bool = Depends(PermissionChecker(required_permission="usuario-all"))
+    ):
+    """
+        Endpoint para retornar todos os usuarios que não foram verificados no 
+        sistema.
+    """
+
+    all_user_not_verified_query = Usuario.is_verified == False
+    query = get_query_user_by_restriction( restriction= all_user_not_verified_query, db= db )
+    users, output = paginate(query, 1, 10)
+
+    for user in users:
+        output["itens"].append(user.to_dict())
+
+    return output
+
+
+@router.get("/all", response_model=UserAllDoc)
+async def userAll( 
+        db = Depends(get_db),
+        authorize: bool = Depends(PermissionChecker(required_permission="usuario-all"))
+    ):
+    """
+        Endpoint que retorna todos os usuarios independente se ele esta
+        verificado ou não.
+    """
+
+    all_user_query = Usuario.is_verified == True
+    query = get_query_user_by_restriction( restriction= all_user_query, db= db )
+    users, output = paginate(query, 1, 10)
 
     for user in users:
         output["itens"].append(user.to_dict())
@@ -26,8 +56,11 @@ async def userAll( db = Depends(get_db)):
 
 
 @router.get("/view/{id:int}", response_model=UserViewDoc, dependencies=[Depends(get_current_user)])
-@resource("usuario-view")
-async def userView(id: int, db: Session = Depends(get_db)):
+async def userView(
+        id: int, 
+        db: Session = Depends(get_db),
+        authorize: bool = Depends(PermissionChecker(required_permission="usuario-view"))
+    ):
     user = db.query(Usuario).get(id)
 
     if not user:
@@ -69,8 +102,11 @@ async def userAdd( user: UserAddSchema, db: Session = Depends(get_db) ):
 
 
 @router.put("/edit/{id:int}", response_model=DefaultReponseDoc, dependencies=[Depends(get_current_user)])
-@resource("usuario-edit")
-async def userEdit(id: int, user: UserEditSchema, db: Session = Depends(get_db)):
+async def userEdit(
+        id: int, user: UserEditSchema, 
+        db: Session = Depends(get_db),
+        authorize: bool = Depends(PermissionChecker(required_permission="usuario-all"))
+    ):
     oldUser = db.query(Usuario).get(id)
 
     if not oldUser:
@@ -97,8 +133,11 @@ async def userEdit(id: int, user: UserEditSchema, db: Session = Depends(get_db))
 
 
 @router.delete("/delete/{id:int}", response_model=DefaultReponseDoc, dependencies=[Depends(get_current_user)])
-@resource("usuario-delete")
-async def userView(id: int, db: Session = Depends(get_db)):
+async def userView( 
+        id: int, 
+        db: Session = Depends(get_db),
+        authorize: bool = Depends(PermissionChecker(required_permission="usuario-delete"))
+    ):
     user = db.query(Usuario).filter(Usuario.id == id).first()
 
     if not user:
@@ -113,3 +152,13 @@ async def userView(id: int, db: Session = Depends(get_db)):
     except:
         db.rollback()
         return {"error": True, "message": "database error"}
+
+
+def get_query_user_by_restriction( restriction : any, db : Session ):
+    """
+        Função que retorna os usuarios com base em uma restrição
+        essa restrição deve ser válida para a tabela Usuario.
+
+        Retorna uma query que pode ser inserida diretamente no paginate.
+    """
+    return db.query( Usuario ).filter( restriction )
