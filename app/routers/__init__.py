@@ -111,34 +111,38 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 # -------------------------------------------------------------------------------------------------- #
 # access control
 
-def resource( resource_name: str ):
-  def wrapper(f):
-    @wraps(f)
-    def wrapped(*args, **kwargs):
-      db = db_dependency
-      user = get_current_user(token_dependency)
+class PermissionChecker:
 
-      user_instance : Usuario = db.session.query(Usuario).get(user["user_id"])
-      user_role = user_instance.cargo_id
-      controller, action = resource_name.split("-")
-      
-      data = db.query(
-        Regra.permitir,
-        Regra.cargo_id,
-        Regra.action.label("action"),
-        Controller.nome.label("controller")
-      ).join( Controller, Regra.controller_id == Controller.id ).filter(
-        Regra.action == action,
-        Regra.cargo_id == user_role,
-        Controller.nome == controller
-      ).first()
+  def __init__(self, required_permission: str) -> None:
+    self.required_permission = required_permission
 
-      if data is None or not data.permitir:
-        return HTTPException(
-          status_code=status.HTTP_401_UNAUTHORIZED,
-          detail={"description" : "Usuario não autorizado"},
-        )
-      
-      return f(*args, **kwargs)
-    return wrapped
-  return wrapper
+  def __call__(
+    self,
+    db : Session = Depends(get_db),  
+    user: dict = Depends(get_current_user),
+  ) -> bool:
+
+    controller, action = self.required_permission.split("-")
+    user_instance : Usuario = db.query(Usuario).get(user["user_id"])
+    user_role = user_instance.cargo_id
+
+    data = db.query(
+      Regra.permitir,
+      Regra.cargo_id,
+      Regra.action.label("action"),
+      Controller.nome.label("controller")
+
+    ).join( Controller, Regra.controller_id == Controller.id ).filter(
+      Regra.action == action,
+      Regra.cargo_id == user_role,
+      Controller.nome == controller
+
+    ).first()
+
+    if data is None or not data.permitir:
+      raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail={"description" : "Usuario não autorizado"},
+      )    
+
+    return True

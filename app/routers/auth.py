@@ -99,6 +99,7 @@ def authenticate_user(email : str, db : db_dependency):
     user : Usuario = db.query(Usuario).filter( Usuario.email == email ).first()
     return user if user is not None else False
 
+
 def create_access_token( email: str, user_id : int, expires_time: timedelta ) -> str:
     encode = {'email' : email, 'user_id' : user_id}
     expires = datetime.utcnow() + expires_time
