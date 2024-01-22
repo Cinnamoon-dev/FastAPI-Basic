@@ -1,28 +1,34 @@
 import json
 from app import bcrypt_context
 from app.database import get_db
-from app.models import userModel
-from fastapi import APIRouter, Response, Depends
 from sqlalchemy.orm import Session
+from . import resource, get_current_user
+from app.models.usuarioModel import Usuario
+from fastapi import APIRouter, Response, Depends
 from app.routers import paginate, instance_update
 from app.swagger_models.userResponses import UserAllDoc, UserViewDoc
 from app.swagger_models.generalResponses import DefaultReponseDoc
 from app.schemas.userSchema import UserAddSchema, UserEditSchema
 
+
+
 router = APIRouter(prefix="/user", tags=["user"])
 
-@router.get("/all", response_model=UserAllDoc)
-async def userAll(db: Session = Depends(get_db)):
-    users, output = paginate(db.query(userModel.User), 1, 10)
+@router.get("/all", response_model=UserAllDoc, dependencies=[Depends(get_current_user)])
+@resource("usuario-all")
+async def userAll( db = Depends(get_db)):
+    users, output = paginate(db.query(Usuario), 1, 10)
 
     for user in users:
         output["itens"].append(user.to_dict())
 
     return output
 
-@router.get("/view/{id:int}", response_model=UserViewDoc)
+
+@router.get("/view/{id:int}", response_model=UserViewDoc, dependencies=[Depends(get_current_user)])
+@resource("usuario-view")
 async def userView(id: int, db: Session = Depends(get_db)):
-    user = db.query(userModel.User).get(id)
+    user = db.query(Usuario).get(id)
 
     if not user:
         return {"error": True, "message": "user not found"}, 404
@@ -34,19 +40,21 @@ async def userView(id: int, db: Session = Depends(get_db)):
 
     return response
 
+
 @router.post("/add", response_model=DefaultReponseDoc)
-async def userAdd(user: UserAddSchema, db: Session = Depends(get_db)):
+async def userAdd( user: UserAddSchema, db: Session = Depends(get_db) ):
     data = user.model_dump()
     email = data.get("email").lower()
 
-    if db.query(userModel.User).filter(userModel.User.email == email).first():
+    if db.query(Usuario).filter(Usuario.email == email).first():
         return Response(json.dumps({"error": True, "message": "email already registered"}), 409)
     
-    newUser = userModel.User(
-        name=data.get("name"),
-        email=data.get("email").lower(),
-        password=bcrypt_context.hash(data.get("password")),
-        isVerified=False
+    newUser = Usuario(
+        is_verified =False,
+        name        =data.get("name"),
+        cargo_id    =data.get("cargo_id"),
+        email       =data.get("email").lower(),
+        password    =bcrypt_context.hash(data.get("password"))
     )
     db.add(newUser)
 
@@ -59,26 +67,27 @@ async def userAdd(user: UserAddSchema, db: Session = Depends(get_db)):
         db.rollback()
         return {"error": True, "message": "database error"}
 
-@router.put("/edit/{id:int}", response_model=DefaultReponseDoc)
+
+@router.put("/edit/{id:int}", response_model=DefaultReponseDoc, dependencies=[Depends(get_current_user)])
+@resource("usuario-edit")
 async def userEdit(id: int, user: UserEditSchema, db: Session = Depends(get_db)):
-    oldUser = db.query(userModel.User).get(id)
+    oldUser = db.query(Usuario).get(id)
 
     if not oldUser:
         return {"error": True, "message": "user not found"}, 404
 
     data = user.model_dump()
 
-    if "email" in data and data.get("email") is not None:
-        repeatedEmail = db.query(userModel.User).filter(userModel.User.email == data.get("email")).first()
+    if data.get("email") is not None:
+        lower_email = data.get("email").lower()
+        repeatedEmail = db.query(Usuario).filter(Usuario.email == lower_email).first()
 
         if repeatedEmail:
             return {"error": True, "message": "Email already registered"}, 409
 
     instance_update(oldUser, data)
-    db.add(oldUser)
-
+    
     try:
-        db.flush()
         db.commit()
         return {"error": False, "message": "deu bom"}
     
@@ -86,9 +95,11 @@ async def userEdit(id: int, user: UserEditSchema, db: Session = Depends(get_db))
         db.rollback()
         return {"error": True, "message": "database error"}
 
-@router.delete("/delete/{id:int}", response_model=DefaultReponseDoc)
+
+@router.delete("/delete/{id:int}", response_model=DefaultReponseDoc, dependencies=[Depends(get_current_user)])
+@resource("usuario-delete")
 async def userView(id: int, db: Session = Depends(get_db)):
-    user = db.query(userModel.User).filter(userModel.User.id == id).first()
+    user = db.query(Usuario).filter(Usuario.id == id).first()
 
     if not user:
         return {"error": True, "message": "user not found"}, 404
@@ -96,7 +107,6 @@ async def userView(id: int, db: Session = Depends(get_db)):
     db.delete(user)
     
     try:
-        db.flush()
         db.commit()
         return {"error": False, "message": "deu bom"}
 

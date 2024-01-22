@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from app.swagger_models.cargoResponses import CargoDoc
 from app.swagger_models.generalResponses import PaginationDoc
 
 class UserDoc(BaseModel):
@@ -7,6 +8,7 @@ class UserDoc(BaseModel):
     email: str
     password: str
     isVerified: bool
+    cargo : CargoDoc
 
 class UserAllDoc(BaseModel):
     error: bool
