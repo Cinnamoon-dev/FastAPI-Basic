@@ -12,6 +12,16 @@
 				{
 					"name": "all",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -30,6 +40,16 @@
 				{
 					"name": "view",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -49,11 +69,21 @@
 				{
 					"name": "add",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"postman\",\n    \"email\": \"postman@email.com\",\n    \"password\": \"postman\"\n}",
+							"raw": "{\n    \"name\": \"pedro\",\n    \"email\": \"pedrolcsilva10@gmail.com\",\n    \"password\": \"1234\",\n    \"cargo_id\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -76,6 +106,16 @@
 				{
 					"name": "edit",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "PUT",
 						"header": [],
 						"body": {
@@ -104,6 +144,16 @@
 				{
 					"name": "delete",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "DELETE",
 						"header": [],
 						"url": {
@@ -132,7 +182,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"example@email.com\"\n}",
+							"raw": "{\n    \"email\": \"pedrolcsilva10@gmail.com\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -213,7 +263,7 @@
 							"formdata": [
 								{
 									"key": "username",
-									"value": "example@email.com",
+									"value": "teste@email.com",
 									"type": "text"
 								},
 								{
@@ -242,6 +292,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"body": {
@@ -272,6 +332,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"body": {
