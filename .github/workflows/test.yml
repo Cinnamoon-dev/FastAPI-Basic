@@ -7,13 +7,20 @@ on:
 jobs:
     run-tests:
         name: Test
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: false
-            matrix: 
-                os: [ubuntu-latest, macos-latest, windows-latest]
-                python-version:
-                    - 3.11
+        runs-on: ubuntu-latest
+        services:
+          postgres:
+            image: postgres
+            env:
+              POSTGRES_PASSWORD: ${{ secrets.TEST_POSTGRES_PASSWORD }}
+            options: >-
+              --health-cmd pg_isready
+              --health-interval 3s
+              --health-timeout 3s
+              --health-retries 5
+              --name postgres_test
+            ports:
+              - 5432:5432 
         steps:
             - name: Checkout code
               uses: actions/checkout@v3
@@ -21,7 +28,7 @@ jobs:
             - name: Set up python
               uses: actions/setup-python@v4
               with:
-                python-version: ${{ matrix.python-version }}
+                python-version: 3.11
             
             - name: Install Dependencies
               run: |

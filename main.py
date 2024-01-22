@@ -4,7 +4,6 @@ from app.database import Base, engine
 from app.routers import auth, user, mail
 from fastapi.staticfiles import StaticFiles
 
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.mount("/templates", StaticFiles(directory="templates"), name="templates")
@@ -14,4 +13,5 @@ app.include_router(auth.router)
 app.include_router(mail.router)
 
 if __name__ == "__main__":
+    Base.metadata.create_all(bind=engine)
     uvicorn.run("main:app", host="0.0.0.0", port=5000, reload=True)
