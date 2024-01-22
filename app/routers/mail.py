@@ -46,6 +46,16 @@ def token(email: EmailStr):
     _token = token_algo.dumps(email)
     return _token
 
+async def send_email(html, title, email):
+    message = MessageSchema(
+        subject=title,
+        recipients=[email],
+        body=html.body,
+        subtype=MessageType.html
+    )
+
+    fm = FastMail(conf)
+    await fm.send_message(message)
 
 @router.post("/send_verify_email")
 async def send_verify_email(email: SendEmailSchema, request: Request, db: Session = Depends(get_db)):
@@ -59,21 +69,8 @@ async def send_verify_email(email: SendEmailSchema, request: Request, db: Sessio
     email_token = token(email_to_verify)
     html = templates.TemplateResponse(request=request, name="emailVerify.html", context={"email_token": email_token})
 
-    message = MessageSchema(
-        subject=TITLE,
-        recipients=[email.model_dump().get("email")],
-        body=html.body,
-        subtype=MessageType.html
-    )
-
-    fm = FastMail(conf)
-    
-    try:
-        await fm.send_message(message)
-        return JSONResponse(status_code=200, content={"message": "email has been sent", "error": False})
-    
-    except:
-        return {"error": True, "message": "database error"}
+    await send_email(html, TITLE, email_to_verify)    
+    return JSONResponse(status_code=200, content={"message": "email has been sent", "error": False})
 
 
 @router.get("/verify_email/{email_token}", response_class=HTMLResponse)
