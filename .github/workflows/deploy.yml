@@ -2,7 +2,7 @@ name: Build and Deploy CD Workflow
 
 on:
   push:
-    branches: [master, develop]
+    branches: [main, develop]
   workflow_dispatch:
 
 jobs:
