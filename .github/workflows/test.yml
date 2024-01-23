@@ -5,7 +5,7 @@ on:
     pull_request:
 
 env:
-  - SQLALCHEMY_DATABASE_URL: postgresql://postgres:${{ secrets.TEST_POSTGRES_PASSWORD }}@localhost:5432/postgres
+  SQLALCHEMY_DATABASE_URL: postgresql://postgres:${{ secrets.TEST_POSTGRES_PASSWORD }}@localhost:5432/postgres
 
 jobs:
     run-tests:
