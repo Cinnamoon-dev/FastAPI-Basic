@@ -4,10 +4,14 @@ on:
     push:
     pull_request:
 
+env:
+  - SQLALCHEMY_DATABASE_URL: postgresql://postgres:${{ secrets.TEST_POSTGRES_PASSWORD }}@localhost:5432/postgres
+
 jobs:
     run-tests:
         name: Test
         runs-on: ubuntu-latest
+        
         services:
           postgres:
             image: postgres
