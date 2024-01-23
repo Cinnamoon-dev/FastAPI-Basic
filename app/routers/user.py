@@ -15,7 +15,7 @@ from app.swagger_models.userResponses import UserAllDoc, UserViewDoc
 router = APIRouter(prefix="/user", tags=["user"])
 
 
-@router.get("/all/notVerified")
+@router.get("/all/notVerified", response_model=UserAllDoc)
 async def userAllNotVerified(
         db = Depends(get_db),
         authorize: bool = Depends(PermissionChecker(required_permission="usuario-all"))
@@ -41,8 +41,7 @@ async def userAll(
         authorize: bool = Depends(PermissionChecker(required_permission="usuario-all"))
     ):
     """
-        Endpoint que retorna todos os usuarios independente se ele esta
-        verificado ou não.
+        Endpoint que retorna todos os usuarios verificados.
     """
 
     all_user_query = Usuario.is_verified == True
@@ -61,6 +60,10 @@ async def userView(
         db: Session = Depends(get_db),
         authorize: bool = Depends(PermissionChecker(required_permission="usuario-view"))
     ):
+    """
+        Visualiza um usuário pelo id na base de dados.
+    """
+    
     user = db.query(Usuario).get(id)
 
     if not user:
@@ -76,6 +79,10 @@ async def userView(
 
 @router.post("/add", response_model=DefaultReponseDoc)
 async def userAdd( user: UserAddSchema, db: Session = Depends(get_db) ):
+    """
+        Cria um usuário na base de dados.
+    """
+
     data = user.model_dump()
     email = data.get("email").lower()
 
@@ -107,6 +114,10 @@ async def userEdit(
         db: Session = Depends(get_db),
         authorize: bool = Depends(PermissionChecker(required_permission="usuario-all"))
     ):
+    """
+        Edita um usuário na base de dados com base no id.
+    """
+    
     oldUser = db.query(Usuario).get(id)
 
     if not oldUser:
@@ -133,11 +144,15 @@ async def userEdit(
 
 
 @router.delete("/delete/{id:int}", response_model=DefaultReponseDoc, dependencies=[Depends(get_current_user)])
-async def userView( 
+async def userDelete( 
         id: int, 
         db: Session = Depends(get_db),
         authorize: bool = Depends(PermissionChecker(required_permission="usuario-delete"))
     ):
+    """
+        Deleta um usuário na base de dados com base no id.
+    """
+    
     user = db.query(Usuario).filter(Usuario.id == id).first()
 
     if not user:

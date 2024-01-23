@@ -12,8 +12,7 @@ from app.schemas.mailSchema import SendEmailSchema
 from fastapi import APIRouter, Request, Response, Depends
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from itsdangerous import URLSafeTimedSerializer, BadTimeSignature, SignatureExpired
-
-from app.swagger_models.mailResponses import ForgotPasswordDoc
+from app.swagger_models.mailResponses import ForgotPasswordDoc, SendVerifyEmailDocSuccess
 
 router = APIRouter(prefix="/mail", tags=["mail"])
 templates = Jinja2Templates(directory="templates")
@@ -57,14 +56,20 @@ async def send_email(html, title, email):
     fm = FastMail(conf)
     await fm.send_message(message)
 
-@router.post("/send_verify_email")
+@router.post("/send_verify_email", response_model=SendVerifyEmailDocSuccess)
 async def send_verify_email(email: SendEmailSchema, request: Request, db: Session = Depends(get_db)):
-    
+    """
+        Envia um email de confirmação para alterar o campos isVerified de false para true. Verifica se o usuario ja existe na base de dados e se ele ja foi verificado.
+    """
+
     email_to_verify = str(email.model_dump()["email"]).lower()
     user = db.query(Usuario).filter(Usuario.email == email_to_verify).first()
 
     if not user:
         return Response(json.dumps({"error": True, "message": "Email not found"}), 404)
+
+    if user.is_verified:
+        return Response(json.dumps({"error": True, "message": "User already verified"}), 400)
 
     email_token = token(email_to_verify)
     html = templates.TemplateResponse(request=request, name="emailVerify.html", context={"email_token": email_token})
@@ -75,7 +80,10 @@ async def send_verify_email(email: SendEmailSchema, request: Request, db: Sessio
 
 @router.get("/verify_email/{email_token}", response_class=HTMLResponse)
 async def verify_email(request: Request, email_token: Union[str, bytes], db: Session = Depends(get_db)):
-
+    """
+        Esse endpoint retorna HTML. É o que vai ser renderizado quando o usuário clica no link de confirmar email.
+    """
+    
     try:
         email = token_algo.loads(email_token, max_age=1800).lower()
 
@@ -99,6 +107,9 @@ async def verify_email(request: Request, email_token: Union[str, bytes], db: Ses
 
 @router.post("/forgot_password", response_model=ForgotPasswordDoc)
 async def forgotPassword(request: Request, db: Session = Depends(get_db)):
+    """
+        Altera a senha de usuario na base de dados com base no email recebido 
+    """
 
     data = await request.json()
     user = db.query(Usuario).filter(Usuario.email == data["email"].lower()).first()
