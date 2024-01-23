@@ -6,19 +6,17 @@
 
 
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-USER = os.getenv("POSTGRES_USER", "postgres")
-PASSWORD = os.getenv("POSTGRES_PASSWORD", "1234")
-HOST = os.getenv("POSTGRES_HOST", "localhost")
-PORT = os.getenv("POSTGRES_PORT", 5432)
-DATABASE = os.getenv("POSTGRES_DB", "fastdb")
-TEST_DATABASE = os.getenv("TEST_POSTGRES_DB", "postgres")
+load_dotenv()
 
-SQLALCHEMY_DATABASE_URL = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
-SQLALCHEMY_DATABASE_TEST_URL = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{TEST_DATABASE}"
+STAGE = os.getenv("STAGE", None)
+SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL", "postgresql://postgres:1234@localhost:5432/fastdb")
 
+if STAGE == "test":
+    SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_TEST_URL", "postgresql://postgres:1234@localhost:5432/postgres")
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
