@@ -28,10 +28,7 @@ $ python3 main.py
 [Postgres](https://www.postgresql.org/download/) is the database used. Choose the database connection URL creating env variables specified in `/docs/environment_variables.md`. Alternatively, you can change the default values in the `app/database/__init__.py`.
 
 ```python
-USER = os.getenv("POSTGRES_USER", "change_me_here")
-PASSWORD = os.getenv("POSTGRES_PASSWORD", "change_me_here")
-HOST = os.getenv("POSTGRES_HOST", "change_me_here")
-PORT = os.getenv("POSTGRES_PORT", "change_me_here")
-DATABASE = os.getenv("POSTGRES_DB", "change_me_here")
-TEST_DATABASE = os.getenv("TEST_POSTGRES_DB", "change_me_here")
+SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL", "change_me_here")
+SQLALCHEMY_DATABASE_TEST_URL = os.getenv("SQLALCHEMY_DATABASE_TEST_URL", "change_me_here")
+STAGE = os.getenv("STAGE", "change_me_here")
 ```
