@@ -11,7 +11,7 @@ class UserDoc(BaseModel):
     cargo : CargoDoc
 
 class UserAllDoc(BaseModel):
-    error: bool
+    error: bool = False
     itens: list[UserDoc]
     pagination: PaginationDoc
 
