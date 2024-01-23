@@ -11,11 +11,9 @@ The `.db.env` file provides the variables below to the docker database service:
 
 ### API
 The `.dev.env` file provides the variables below to the docker API service:
-- POSTGRES_HOST
-- POSTGRES_USER
-- POSTGRES_PASSWORD
-- POSTGRES_DB
-- POSTGRES_PORT
+- SQLALCHEMY_DATABASE_URL
+
+<br>
 
 `POSTGRES_HOST` should refer to the hostname property in the database service on the compose file.
 
