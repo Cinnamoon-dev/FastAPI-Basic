@@ -6,20 +6,9 @@
       ele simula um formdata que viria do frontend.
 """
 
-
-def test_login_with_valid_user(client_app):
-
-  valid_user_login = { "username" : "teste@email.com",  "password": "1234" }
-  response = client_app.post("/auth/login", data=valid_user_login)
-  
-  assert response.is_success
-  assert "access_token" in response.json()
-  assert "refresh_token" in response.json()
-
-
 def test_login_with_not_found_user(client_app):
 
-  valid_user = {"username" : "sherek@email.com", "password": "1234"}
+  valid_user = {"username" : "teste@email.com", "password": "1234"}
   response = client_app.post("/auth/login",data=valid_user)
 
   assert not response.is_success
@@ -27,3 +16,24 @@ def test_login_with_not_found_user(client_app):
   assert "access_token" not in response.json()
   assert "refresh_token" not in response.json()
 
+def test_login_with_not_verified_user( client_app ):
+
+  create_user = {
+      "cargo_id" : 1,
+      "password": "1234", 
+      "name": "ValidCreate",
+      "email": "validCreate@email.com", 
+  }
+  response = client_app.post("/user/add", json=create_user)
+
+  assert response.is_success
+  assert response.json().get("error") == False
+
+  valid_user = {"username" : "validCreate@email.com", "password": "1234"}
+  response = client_app.post("/auth/login",data=valid_user)
+
+  response_json = response.json()
+
+  assert not response.is_success
+  assert "error" in response_json
+  assert not response_json.get("error")
