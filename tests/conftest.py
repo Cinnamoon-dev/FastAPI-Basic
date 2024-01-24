@@ -27,11 +27,11 @@ def client_app(_engine, tables):
     def _override_get_db():
         _db = TestSessionLocal()
         try:
-            insertData.populate()
             yield _db
         finally:
             _db.close()
 
+    insertData.populate()
     app.dependency_overrides[get_db] = _override_get_db
     client = TestClient(app)
     yield client
