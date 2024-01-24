@@ -102,7 +102,7 @@ def authenticate_user(email : str, db : db_dependency):
 
 def create_access_token( email: str, user_id : int, expires_time: timedelta ) -> str:
     encode = {'email' : email, 'user_id' : user_id}
-    expires = datetime.utcnow() + expires_time
+    expires = datetime.now() + expires_time
     encode.update({'exp' : expires})
     
     return jwt.encode(encode, JWT_ACCESS_SECRETY_KEY, algorithm=ALGORITHM_TO_HASH)
@@ -110,7 +110,7 @@ def create_access_token( email: str, user_id : int, expires_time: timedelta ) ->
 
 def create_refresh_token( email : str, user_id : int, expires_delta: timedelta) -> str:
     encode = {'email' : email, 'user_id' : user_id}
-    expires = datetime.utcnow() + expires_delta
+    expires = datetime.now() + expires_delta
     encode.update({"exp" : expires})
 
     return jwt.encode(encode, JWT_REFRESH_SECRET_KEY, ALGORITHM_TO_HASH)
