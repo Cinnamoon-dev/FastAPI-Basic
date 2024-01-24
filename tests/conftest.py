@@ -14,16 +14,17 @@ def _engine():
 @pytest.fixture(scope="function")
 def tables(_engine):
     Base.metadata.create_all(bind=_engine)
+    insertData.populate()
     yield
     Base.metadata.drop_all(bind=_engine)
 
 @pytest.fixture(scope="function")
 def client_app(_engine, tables):
+    
     connection = _engine.connect()
     transaction = connection.begin()
-    
     TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
-
+    
     def _override_get_db():
         _db = TestSessionLocal()
         try:
@@ -31,7 +32,6 @@ def client_app(_engine, tables):
         finally:
             _db.close()
 
-    insertData.populate()
     app.dependency_overrides[get_db] = _override_get_db
     client = TestClient(app)
     yield client
