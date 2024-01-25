@@ -1,6 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
-from app.database import Base, engine, SQLALCHEMY_DATABASE_URL
+from app.database import Base, engine
 from app.routers import auth, user, mail
 from fastapi.staticfiles import StaticFiles
 

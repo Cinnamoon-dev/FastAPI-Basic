@@ -4,33 +4,38 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 from app.database import Base, get_db,SQLALCHEMY_DATABASE_URL
+from app.database import insertData
 
 
-engine = create_engine( 
-    SQLALCHEMY_DATABASE_URL, 
-    # connect_args={"check_same_thread": False} # Use this for sqlite connections
-)
-
-Base.metadata.create_all(bind=engine)
-TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def override_get_db():
-    db = TestSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-    
-app.dependency_overrides[get_db] = override_get_db
-client = TestClient(app)
+@pytest.fixture(scope="session")
+def _engine():
+    return create_engine(SQLALCHEMY_DATABASE_URL)
 
 @pytest.fixture(scope="function")
-def client_app():
+def tables(_engine):
+    Base.metadata.create_all(bind=_engine)
+    insertData.populate()
+    yield
+    Base.metadata.drop_all(bind=_engine)
+
+@pytest.fixture(scope="function")
+def client_app(_engine, tables):
+    
+    connection = _engine.connect()
+    transaction = connection.begin()
+    TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+    
+    def _override_get_db():
+        _db = TestSessionLocal()
+        try:
+            yield _db
+        finally:
+            _db.close()
+
+    app.dependency_overrides[get_db] = _override_get_db
     client = TestClient(app)
     yield client
 
-@pytest.fixture(scope="function")
-def test_db():
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
+    TestSessionLocal.close_all()
+    transaction.rollback()
+    connection.close()

@@ -1,31 +1,53 @@
-from tests.conftest import client, test_db
 
-""" Arquivo de teste de autenticação """
+""" 
+  Arquivo de teste de autenticação.
 
-def test_add_user_to_login(test_db):
-  valid_user_to_add = {"name" : "pedro","email": "teste@email.com", "password": "1234"}
-  response = client.post("/user/add", json=valid_user_to_add)
+  PS: Para simular um formdata é necessário passar data no client.post.
+      ele simula um formdata que viria do frontend.
+"""
+
+def test_login_with_not_found_user(client_app):
+
+  valid_user = {"username" : "notFound@email.com", "password": "1234"}
+  response = client_app.post("/auth/login",data=valid_user)
+
+  assert not response.is_success
+  assert response.status_code == 404
+  assert "access_token" not in response.json()
+  assert "refresh_token" not in response.json()
+
+def test_login_with_not_verified_user( client_app ):
+
+  create_user = {
+    "cargo_id" : 1,
+    "password": "1234", 
+    "name": "ValidCreate",
+    "email": "validCreate@email.com", 
+  }
+  response = client_app.post("/user/add", json=create_user)
+
+  assert response.is_success
+  assert response.json().get("error") == False
+
+  invalid_user = {"username" : "validCreate@email.com", "password": "1234"}
+  response = client_app.post("/auth/login",data=invalid_user)
 
   response_json = response.json()
-  assert response.status_code == 200
-  assert response_json.get("error") == False
 
+  assert not response.is_success
+  assert "error" in response_json
+  assert not response_json.get("error")
 
-# def test_login_with_valid_user(test_db):
-#   valid_user = {"email" : "pedro@email.com", "password": "1234", "name": "pedro"}
-#   valid_user_login = {"username": "pedro@email.com", "password": "1234"}
-#   response = client.post("/user/add", json=valid_user)
-#   response = client.post("/auth/login",data=valid_user_login)
+def test_login_with_valid_user( client_app ):
+
+  valid_user = {"username" : "teste@email.com", "password": "1234"}
+  response = client_app.post("/auth/login",data=valid_user)
+
+  response_json = response.json()
   
-#   assert response.is_success == True
-#   assert "access_token" in response.json()
-#   assert "refresh_token" in response.json()
+  assert "access_token" in response_json
+  assert "refresh_token" in response_json
+  assert "token_type" in response_json
 
-# def test_login_with_invalid_user(test_db):
-#   valid_user = {"username" : "sherek@email.com", "password": "1234"}
-#   response = client.post("/auth/login",data=valid_user)
+  assert response_json.get("token_type") == "Bearer"
 
-#   assert response.status_code != 202
-#   assert "access_token" not in response.json()
-#   assert "refresh_token" not in response.json()
-#   assert response.is_success == False
