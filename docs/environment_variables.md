@@ -12,6 +12,8 @@ The `.db.env` file provides the variables below to the docker database service:
 ### API
 The `.dev.env` file provides the variables below to the docker API service:
 - SQLALCHEMY_DATABASE_URL
+- SQLALCHEMY_DATABASE_TEST_URL
+- STAGE
 
 <br>
 
