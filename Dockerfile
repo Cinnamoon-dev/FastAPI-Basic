@@ -8,4 +8,6 @@ RUN pip install -r docker/requirements.txt
 
 COPY . .
 
+RUN python3 -m app.database.insertData
+
 ENTRYPOINT ["python3", "main.py"]
